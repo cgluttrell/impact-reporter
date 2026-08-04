@@ -12,10 +12,15 @@
 
 # testing
 /coverage
+/test-results/
 
 # next.js
 /.next/
 /out/
+
+# cloudflare
+/.open-next/
+/.wrangler/
 
 # production
 /build
