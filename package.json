@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --exclude tests/e2e/**",
+    "test:e2e": "pnpm build && playwright test",
+    "qa": "pnpm test && pnpm lint && pnpm typecheck && pnpm test:e2e"
   },
   "dependencies": {
     "lucide-react": "^1.28.0",
@@ -17,6 +19,8 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
