@@ -27,6 +27,20 @@ test("static demo supports the four-step workflow and export", async ({
   await page.getByRole("button", { name: /Generate Markdown export/ }).click();
   await expect(page.getByText("Winter Learning Lab Progress Update")).toBeVisible();
   await expect(page.locator("pre")).toContainText("Blocked claim excluded");
+
+  await expect(
+    page.getByLabel("Generated Markdown export"),
+  ).toContainText("Blocked claim excluded");
+
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+
+  const seriousOrCritical = results.violations.filter((violation) =>
+    ["serious", "critical"].includes(violation.impact ?? ""),
+  );
+
+  expect(seriousOrCritical).toEqual([]);
 });
 
 test("optional live routes are safe without a server-side key", async ({
