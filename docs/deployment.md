@@ -2,8 +2,10 @@
 
 Impact Reporter is not public yet.
 
-The recommended first deployment target is Vercel because this is a Next.js app.
-Cloudflare Pages is acceptable if Chris chooses that hosting path.
+The recommended first deployment target is Cloudflare because LIW already uses
+that account and this repo now includes the official OpenNext Cloudflare adapter
+configuration for deploying Next.js to Cloudflare Workers with Workers Assets.
+Vercel remains a fallback if Cloudflare setup creates unexpected friction.
 
 ## Required gates before public deployment
 
@@ -27,15 +29,25 @@ Cloudflare Pages is acceptable if Chris chooses that hosting path.
 7. Capture desktop and mobile screenshots.
 8. Record the approved URL in Mission Control.
 
-## Cloudflare Pages outline
+## Cloudflare Workers outline
 
-1. Connect `cgluttrell/impact-reporter`.
-2. Use the Next.js adapter path Chris approves for this project.
-3. Keep the first public demo static/no-key.
-4. Deploy only after `pnpm qa` passes.
-5. Run the browser QA checklist against the production URL.
+Use Cloudflare's current Next.js path: OpenNext for Cloudflare on Workers with
+Workers Assets. Do not use the deprecated `next-on-pages` package.
+
+1. Connect `cgluttrell/impact-reporter` in Cloudflare Workers/Pages builds or
+   deploy from an authenticated local shell.
+2. Keep the first public demo static/no-key by leaving `OPENAI_API_KEY` unset.
+3. Use the repo's checked-in `wrangler.jsonc` and `open-next.config.ts`.
+4. Deploy only after `pnpm qa` and `pnpm preview` pass.
+5. Use `pnpm deploy` for an authenticated CLI deploy, or configure Cloudflare's
+   build/deploy flow to run the equivalent OpenNext Cloudflare deploy command.
+6. Run the browser QA checklist against the production URL.
+7. Capture desktop and mobile screenshots.
+8. Record the approved URL in Mission Control.
 
 ## Current environment note
 
 This machine did not have `vercel`, `cloudflare`, or `wrangler` CLI available
 when T1741 was prepared, so no hosted deployment was performed in that pass.
+T1742 added Cloudflare config and `wrangler` as a project devDependency; account
+authentication is still required before a hosted deploy can be performed.
