@@ -65,6 +65,9 @@ as the static vertical slice lands.
 - [Verifier contract](docs/verifier-contract.md)
 - [Privacy and safety](docs/privacy-and-safety.md)
 - [Contributing](docs/contributing.md)
+- [Deployment runbook](docs/deployment.md)
+- [QA checklist](docs/qa.md)
+- [Submission draft](docs/submission-draft.md)
 
 ## Project Management
 
