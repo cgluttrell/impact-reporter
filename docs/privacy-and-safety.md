@@ -12,3 +12,12 @@ submit reports.
 If optional live model routes are enabled, they must run server-side only, use
 structured outputs, set `store: false`, handle refusal and malformed output,
 and avoid raw evidence logging.
+
+Current live-route safety defaults:
+
+- no key required for static demo mode
+- `OPENAI_API_KEY` is read server-side only
+- `OPENAI_MODEL` is optional and server-side
+- request input is bounded
+- no real data is allowed
+- public hosted live calls require Chris approval before enablement
