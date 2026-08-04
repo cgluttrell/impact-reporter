@@ -300,7 +300,11 @@ export function ImpactReporterDemo() {
                 Generate Markdown export
               </button>
               {exportText && (
-                <pre className="mt-5 max-h-96 overflow-auto whitespace-pre-wrap border border-[#c9d2c4] bg-[#f6f7f4] p-4 text-sm leading-6">
+                <pre
+                  aria-label="Generated Markdown export"
+                  className="mt-5 max-h-96 overflow-auto whitespace-pre-wrap border border-[#c9d2c4] bg-[#f6f7f4] p-4 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-[#234f39] focus:ring-offset-2"
+                  tabIndex={0}
+                >
                   {exportText}
                 </pre>
               )}
