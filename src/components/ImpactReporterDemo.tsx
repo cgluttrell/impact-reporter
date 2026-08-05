@@ -20,6 +20,12 @@ import {
   projectBrief,
   requirements,
 } from "@/lib/demo-data";
+import {
+  buildMarkdownExportFromDataset,
+  buildSampleWorkflow,
+  samplePacketText,
+  ReportDataset,
+} from "@/lib/sample-workflow";
 
 const steps = [
   "Report brief",
@@ -55,18 +61,46 @@ export function ImpactReporterDemo() {
   const [selectedEvidenceId, setSelectedEvidenceId] = useState("E3");
   const [selectedClaimId, setSelectedClaimId] = useState("C3");
   const [exportText, setExportText] = useState("");
+  const [sampleText, setSampleText] = useState(samplePacketText);
+  const [sampleDataset, setSampleDataset] = useState<ReportDataset | null>(null);
 
-  const selectedEvidence = evidence.find((item) => item.id === selectedEvidenceId);
-  const selectedClaim = claims.find((claim) => claim.id === selectedClaimId);
-  const blockedClaims = claims.filter((claim) => claim.status === "blocked");
+  const activeBrief = sampleDataset?.projectBrief ?? projectBrief;
+  const activeRequirements = sampleDataset?.requirements ?? requirements;
+  const activeEvidence = sampleDataset?.evidence ?? evidence;
+  const activeClaims = sampleDataset?.claims ?? claims;
+  const activeMode = sampleDataset ? "sample" : "preloaded";
+
+  const selectedEvidence = activeEvidence.find(
+    (item) => item.id === selectedEvidenceId,
+  );
+  const selectedClaim = activeClaims.find((claim) => claim.id === selectedClaimId);
+  const blockedClaims = activeClaims.filter((claim) => claim.status === "blocked");
 
   const selectedClaimEvidence = useMemo(
     () =>
       selectedClaim?.evidenceIds
-        .map((id) => evidence.find((item) => item.id === id))
+        .map((id) => activeEvidence.find((item) => item.id === id))
         .filter(Boolean) as EvidenceItem[] | undefined,
-    [selectedClaim],
+    [activeEvidence, selectedClaim],
   );
+
+  function resetToPreloadedSample() {
+    setActiveStep("Report brief");
+    setSelectedEvidenceId("E3");
+    setSelectedClaimId("C3");
+    setExportText("");
+    setSampleText(samplePacketText);
+    setSampleDataset(null);
+  }
+
+  function analyzeSamplePacket() {
+    const dataset = buildSampleWorkflow(sampleText);
+    setSampleDataset(dataset);
+    setSelectedEvidenceId(dataset.evidence[0]?.id ?? "S1");
+    setSelectedClaimId(dataset.claims[0]?.id ?? "SC1");
+    setExportText("");
+    setActiveStep("Evidence ledger");
+  }
 
   return (
     <main className="min-h-screen bg-[#f6f7f4] text-[#1d2522]">
@@ -98,16 +132,11 @@ export function ImpactReporterDemo() {
             </a>
             <button
               className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-[#f6f7f4] px-3 py-2 text-sm font-medium hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
-              onClick={() => {
-                setActiveStep("Report brief");
-                setSelectedEvidenceId("E3");
-                setSelectedClaimId("C3");
-                setExportText("");
-              }}
+              onClick={resetToPreloadedSample}
               type="button"
             >
               <RotateCcw aria-hidden className="h-4 w-4" />
-              Reset sample
+              Reset pilot sample
             </button>
           </div>
         </div>
@@ -115,6 +144,22 @@ export function ImpactReporterDemo() {
 
       <div className="mx-auto grid max-w-7xl gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <section className="space-y-5">
+          <section className="border border-[#c9d2c4] bg-white p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Evidence source</h2>
+                <p className="mt-1 text-sm leading-6 text-[#405048]">
+                  {activeMode === "sample"
+                    ? "Using pasted sample packet. It stays in this browser session and is not uploaded or stored."
+                    : "Using the preloaded fictional pilot sample."}
+                </p>
+              </div>
+              <span className="rounded border border-[#8aa398] bg-[#eef7ef] px-3 py-2 text-sm font-medium text-[#24342e]">
+                {activeMode === "sample" ? "Using pasted sample" : "Using preloaded sample"}
+              </span>
+            </div>
+          </section>
+
           <nav
             aria-label="Impact Reporter workflow"
             className="grid gap-2 sm:grid-cols-4"
@@ -147,15 +192,63 @@ export function ImpactReporterDemo() {
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-[#405048]">
                     This safe pilot is preloaded with a fictional program packet
                     so nonprofit staff, reviewers, and builders can evaluate the
-                    trust workflow before any real data handling is enabled.
+                    trust workflow before any real data handling is enabled. You
+                    can also paste a small safe sample packet to test the
+                    workflow with different evidence.
                   </p>
                 </div>
                 <span className="rounded border border-[#d6b86a] bg-[#fff8df] px-3 py-2 text-sm font-medium text-[#604514]">
                   Human review required
                 </span>
               </div>
+
+              <section className="mt-5 border border-[#d6b86a] bg-[#fffdf2] p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold">Safe sample packet</h3>
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-[#604514]">
+                      Paste synthetic or non-confidential sample notes only. This
+                      runs locally in the browser for this pilot: no upload,
+                      login, storage, or live AI call.
+                    </p>
+                  </div>
+                  <span className="rounded border border-[#8aa398] bg-white px-3 py-2 text-sm font-medium text-[#24342e]">
+                    {activeMode === "sample" ? "Using pasted sample" : "Using preloaded sample"}
+                  </span>
+                </div>
+                <label
+                  className="mt-4 block text-sm font-semibold text-[#405048]"
+                  htmlFor="sample-packet"
+                >
+                  Sample evidence packet
+                </label>
+                <textarea
+                  className="mt-2 min-h-48 w-full resize-y border border-[#c9d2c4] bg-white p-3 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                  id="sample-packet"
+                  onChange={(event) => setSampleText(event.target.value)}
+                  value={sampleText}
+                />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    className="inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                    onClick={analyzeSamplePacket}
+                    type="button"
+                  >
+                    <Search aria-hidden className="h-4 w-4" />
+                    Analyze sample packet
+                  </button>
+                  <button
+                    className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-4 py-3 text-sm font-semibold hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                    onClick={() => setSampleText(samplePacketText)}
+                    type="button"
+                  >
+                    Load example packet
+                  </button>
+                </div>
+              </section>
+
               <dl className="mt-5 grid gap-3 md:grid-cols-2">
-                {Object.entries(projectBrief).map(([key, value]) => (
+                {Object.entries(activeBrief).map(([key, value]) => (
                   <div className="border border-[#dfe4dc] p-3" key={key}>
                     <dt className="text-sm font-medium capitalize text-[#52615a]">
                       {key.replace(/([A-Z])/g, " $1")}
@@ -165,7 +258,7 @@ export function ImpactReporterDemo() {
                 ))}
               </dl>
               <div className="mt-5 grid gap-3">
-                {requirements.map((requirement) => (
+                {activeRequirements.map((requirement) => (
                   <article
                     className="border border-[#dfe4dc] p-4"
                     key={requirement.id}
@@ -196,7 +289,7 @@ export function ImpactReporterDemo() {
                 outcomes.
               </p>
               <div className="mt-5 grid gap-3">
-                {evidence.map((item) => (
+                {activeEvidence.map((item) => (
                   <button
                     className={`rounded border p-4 text-left focus:outline-none focus:ring-2 focus:ring-[#4f7d68] ${
                       selectedEvidenceId === item.id
@@ -235,7 +328,7 @@ export function ImpactReporterDemo() {
                 inspected.
               </p>
               <div className="mt-5 grid gap-3 md:grid-cols-2">
-                {requirements.map((requirement) => (
+                {activeRequirements.map((requirement) => (
                   <article
                     className="border border-[#dfe4dc] p-4"
                     key={requirement.id}
@@ -258,7 +351,7 @@ export function ImpactReporterDemo() {
                 ))}
               </div>
               <div className="mt-5 space-y-3">
-                {claims.map((claim) => (
+                {activeClaims.map((claim) => (
                   <button
                     className={`w-full rounded border p-4 text-left focus:outline-none focus:ring-2 focus:ring-[#4f7d68] ${
                       selectedClaimId === claim.id
@@ -307,7 +400,13 @@ export function ImpactReporterDemo() {
               </div>
               <button
                 className="mt-5 inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
-                onClick={() => setExportText(buildMarkdownExport())}
+                onClick={() =>
+                  setExportText(
+                    sampleDataset
+                      ? buildMarkdownExportFromDataset(sampleDataset)
+                      : buildMarkdownExport(),
+                  )
+                }
                 type="button"
               >
                 <Download aria-hidden className="h-4 w-4" />
