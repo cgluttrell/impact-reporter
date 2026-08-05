@@ -42,8 +42,9 @@ Workers Assets. Do not use the deprecated `next-on-pages` package.
    `IMPACT_REPORTER_LIVE_AI` unset and `OPENAI_API_KEY` unset.
 3. Use the repo's checked-in `wrangler.jsonc` and `open-next.config.ts`.
 4. Deploy only after `pnpm qa` and `pnpm preview` pass.
-5. Use `pnpm deploy` for an authenticated CLI deploy, or configure Cloudflare's
-   build/deploy flow to run the equivalent OpenNext Cloudflare deploy command.
+5. Use `pnpm run deploy` for an authenticated CLI deploy, or configure
+   Cloudflare's build/deploy flow to run the equivalent OpenNext Cloudflare
+   deploy command.
 6. Run the browser QA checklist against the production URL.
 7. Capture desktop and mobile screenshots.
 8. Record the approved URL in Mission Control.
