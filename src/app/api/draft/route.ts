@@ -2,6 +2,7 @@ import {
   buildResponsesRequest,
   callOpenAIResponses,
   draftPackageSchema,
+  resolveLiveRouteConfig,
   validateLiveRequestBody,
 } from "@/lib/live-openai";
 
@@ -16,20 +17,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+  const liveConfig = resolveLiveRouteConfig(process.env);
 
-  if (!apiKey) {
+  if (!liveConfig.ready) {
     return Response.json({
       mode: "static",
-      status: "no_key",
-      message:
-        "Static demo mode is active. Set OPENAI_API_KEY server-side to enable live drafting.",
+      status: liveConfig.status,
+      message: liveConfig.message,
     });
   }
 
   const openAIRequest = buildResponsesRequest({
-    model,
+    model: liveConfig.model,
     schemaName: "DraftPackage",
     schema: draftPackageSchema(),
     system:
@@ -37,5 +36,5 @@ export async function POST(request: Request) {
     user: validation.note,
   });
 
-  return callOpenAIResponses({ apiKey, request: openAIRequest });
+  return callOpenAIResponses({ apiKey: liveConfig.apiKey, request: openAIRequest });
 }

@@ -1,4 +1,6 @@
 export const MAX_LIVE_INPUT_CHARS = 6000;
+export const LIVE_AI_ENABLE_VALUE = "enabled";
+export const DEFAULT_OPENAI_MODEL = "gpt-4.1-mini";
 
 export type LiveRouteValidation =
   | { ok: true; sourceArtifactId: string; note: string }
@@ -20,6 +22,46 @@ export type OpenAIRequestBody = {
     };
   };
 };
+
+export type LiveRouteConfig =
+  | {
+      ready: true;
+      apiKey: string;
+      model: string;
+    }
+  | {
+      ready: false;
+      status: "live_disabled" | "missing_key";
+      message: string;
+    };
+
+export function resolveLiveRouteConfig(
+  env: Record<string, string | undefined>,
+): LiveRouteConfig {
+  const liveAIEnabled = env.IMPACT_REPORTER_LIVE_AI === LIVE_AI_ENABLE_VALUE;
+  const apiKey = env.OPENAI_API_KEY?.trim();
+  const model = env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
+
+  if (!liveAIEnabled) {
+    return {
+      ready: false,
+      status: "live_disabled",
+      message:
+        "Static pilot mode is active. Live AI requires IMPACT_REPORTER_LIVE_AI=enabled and a server-side OPENAI_API_KEY.",
+    };
+  }
+
+  if (!apiKey) {
+    return {
+      ready: false,
+      status: "missing_key",
+      message:
+        "Live AI is enabled, but no server-side OPENAI_API_KEY is configured.",
+    };
+  }
+
+  return { ready: true, apiKey, model };
+}
 
 export function validateLiveRequestBody(body: unknown): LiveRouteValidation {
   if (!body || typeof body !== "object") {

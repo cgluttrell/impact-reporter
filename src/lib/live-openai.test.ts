@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildResponsesRequest,
+  DEFAULT_OPENAI_MODEL,
   evidenceExtractionSchema,
   MAX_LIVE_INPUT_CHARS,
+  resolveLiveRouteConfig,
   validateLiveRequestBody,
 } from "./live-openai";
 
@@ -72,5 +74,40 @@ describe("live OpenAI route helpers", () => {
       { role: "system", content: "System instruction" },
       { role: "user", content: "User input" },
     ]);
+  });
+
+  it("keeps live AI disabled unless the explicit enable flag is set", () => {
+    expect(
+      resolveLiveRouteConfig({
+        OPENAI_API_KEY: "test-key",
+      }),
+    ).toMatchObject({
+      ready: false,
+      status: "live_disabled",
+    });
+  });
+
+  it("reports a missing key only after live AI is explicitly enabled", () => {
+    expect(
+      resolveLiveRouteConfig({
+        IMPACT_REPORTER_LIVE_AI: "enabled",
+      }),
+    ).toMatchObject({
+      ready: false,
+      status: "missing_key",
+    });
+  });
+
+  it("resolves live route config only with enable flag and server-side key", () => {
+    expect(
+      resolveLiveRouteConfig({
+        IMPACT_REPORTER_LIVE_AI: "enabled",
+        OPENAI_API_KEY: "test-key",
+      }),
+    ).toEqual({
+      ready: true,
+      apiKey: "test-key",
+      model: DEFAULT_OPENAI_MODEL,
+    });
   });
 });
