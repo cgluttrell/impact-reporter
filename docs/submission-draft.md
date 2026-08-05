@@ -4,12 +4,13 @@ Status: draft for Chris review. Do not submit without explicit approval.
 
 ## Short description
 
-Impact Reporter helps small nonprofit teams draft funder progress reports from
-the evidence they actually have. It turns a synthetic evidence packet into a
-traceable report draft, flags missing or unsupported claims, and keeps human
-review in control before export.
+Impact Reporter helps small nonprofit and education teams draft funder progress
+reports from the evidence they actually have. The current hosted pilot uses a
+synthetic evidence packet to demonstrate the product promise: traceable report
+drafting, visible support gaps, blocked unsupported claims, and human review
+before export.
 
-## What the demo shows
+## What the hosted pilot shows
 
 - A four-step reporting workflow.
 - A synthetic Neighborhood Learning Lab fixture.
@@ -27,8 +28,15 @@ The model may propose evidence and language. Deterministic code verifies
 references, arithmetic, quote exactness, consent, warnings, and export
 eligibility. A human remains responsible for approving the final report.
 
-## Limitations
+## Current pilot boundary
 
-The demo uses synthetic data only. It is not a compliance product, audit tool,
-grant-management system, funder-submission service, or proof of real-world
-impact.
+The hosted version uses synthetic data only. It is not a compliance product,
+audit tool, grant-management system, funder-submission service, or proof of
+real-world impact.
+
+## Next MVP slice
+
+The next product step is controlled bring-your-own sample evidence input, not
+user logins. A user should be able to paste or load a small non-confidential
+packet, extract candidate evidence, run verifier checks, inspect claims, and
+export a reviewed Markdown report without creating an account or storing data.
