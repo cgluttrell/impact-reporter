@@ -60,6 +60,7 @@ as the static vertical slice lands.
 
 ## Documentation
 
+- [User guide](docs/user-guide.md)
 - [Architecture](docs/architecture.md)
 - [Demo walkthrough](docs/demo-walkthrough.md)
 - [Verifier contract](docs/verifier-contract.md)
