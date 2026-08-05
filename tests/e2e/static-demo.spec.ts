@@ -113,3 +113,43 @@ test("guide page explains the pilot boundary and next MVP slice", async ({
 
   expect(seriousOrCritical).toEqual([]);
 });
+
+test("user can analyze a safe sample evidence packet", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByLabel("Sample evidence packet").fill(`Program: Library STEM Night
+Organization: East Branch Friends
+Period: 2026-05-01 through 2026-05-31
+Funder: Community Skills Fund
+
+Requirement: Describe activities delivered.
+Requirement: Summarize participation.
+18 youth attended at least one STEM night; 3 sessions were delivered.
+Participants completed robotics stations and reading reflection cards.
+7 of 9 survey respondents said they could name one engineering design step.
+The program will raise school science grades.
+Next cycle, add a pre/post design vocabulary check.`);
+
+  await page.getByRole("button", { name: "Analyze sample packet" }).click();
+
+  await expect(page.getByRole("heading", { name: "Evidence ledger" })).toBeVisible();
+  await expect(page.getByText("Using pasted sample", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /S1: Participation or delivery note/ }),
+  ).toBeVisible();
+  await expect(page.getByText("Unsupported impact claim")).toBeVisible();
+
+  await page.getByRole("button", { name: /Step 3 Coverage and draft/ }).click();
+  await expect(page.getByText(/SC1 \/ R[12]/)).toBeVisible();
+  await expect(page.getByText("blocked").first()).toBeVisible();
+
+  await page.getByRole("button", { name: /Step 4 Review and export/ }).click();
+  await page.getByRole("button", { name: /Generate Markdown export/ }).click();
+
+  await expect(page.getByLabel("Generated Markdown export")).toContainText(
+    "Library STEM Night Progress Update",
+  );
+  await expect(page.getByLabel("Generated Markdown export")).toContainText(
+    "blocked claim excluded",
+  );
+});
