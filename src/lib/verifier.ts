@@ -242,3 +242,35 @@ export function verifyClaims(input: {
 export function hasBlockingFindings(findings: VerificationFinding[]) {
   return findings.some((finding) => finding.blocking);
 }
+
+export function evaluateCleanExportReadiness(input: {
+  claims: Claim[];
+  evidence: EvidenceItem[];
+  requirements: Requirement[];
+  humanReviewApproved: boolean;
+}) {
+  const exportableClaims = input.claims.filter(
+    (claim) => claim.status !== "blocked",
+  );
+  const findings = verifyClaims({
+    claims: exportableClaims,
+    evidence: input.evidence,
+    requirements: input.requirements,
+  }).filter((finding) => finding.code !== "human_review_required");
+
+  findings.push({
+    code: "clean_export.human_review_approved",
+    severity: input.humanReviewApproved ? "pass" : "block",
+    entityId: "report-nll-2026-winter",
+    message: input.humanReviewApproved
+      ? "Human review has been recorded for clean export."
+      : "Clean export requires recorded human review.",
+    blocking: !input.humanReviewApproved,
+  });
+
+  return {
+    canExport: !hasBlockingFindings(findings),
+    findings,
+    exportableClaims,
+  };
+}

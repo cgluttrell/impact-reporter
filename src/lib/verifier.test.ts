@@ -3,6 +3,7 @@ import {
   checkAttendanceAverage,
   checkOutcomeDelta,
   checkQuote,
+  evaluateCleanExportReadiness,
   hasBlockingFindings,
   verifyClaims,
 } from "./verifier";
@@ -218,6 +219,59 @@ describe("verifier claim integrity rules", () => {
           severity: "block",
         }),
       ]),
+    );
+  });
+
+  it("blocks when a required requirement has no draft claim link", () => {
+    const findings = verifyClaims({
+      claims: claims.filter((claim) => claim.requirementId !== "R4"),
+      evidence,
+      requirements,
+    });
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "required_requirements_have_links",
+          entityId: "R4",
+          severity: "block",
+          blocking: true,
+        }),
+      ]),
+    );
+  });
+
+  it("blocks clean export until human review is recorded", () => {
+    const readiness = evaluateCleanExportReadiness({
+      claims,
+      evidence,
+      requirements,
+      humanReviewApproved: false,
+    });
+
+    expect(readiness.canExport).toBe(false);
+    expect(readiness.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "clean_export.human_review_approved",
+          severity: "block",
+          blocking: true,
+        }),
+      ]),
+    );
+  });
+
+  it("allows clean export after human review when blocked claims are excluded", () => {
+    const readiness = evaluateCleanExportReadiness({
+      claims,
+      evidence,
+      requirements,
+      humanReviewApproved: true,
+    });
+
+    expect(readiness.canExport).toBe(true);
+    expect(readiness.exportableClaims.map((claim) => claim.id)).not.toContain(
+      "C6",
     );
   });
 });

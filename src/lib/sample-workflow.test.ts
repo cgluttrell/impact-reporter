@@ -19,6 +19,9 @@ describe("sample evidence workflow", () => {
     expect(
       dataset.evidence.some((item) => item.provenance.includes("not stored")),
     ).toBe(true);
+    expect(
+      dataset.claims.some((claim) => claim.requirementId === "R2"),
+    ).toBe(true);
 
     const exportText = buildMarkdownExportFromDataset(dataset);
 
