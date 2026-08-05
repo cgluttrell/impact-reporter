@@ -26,6 +26,7 @@ import {
   samplePacketText,
   ReportDataset,
 } from "@/lib/sample-workflow";
+import { evaluateCleanExportReadiness } from "@/lib/verifier";
 
 const steps = [
   "Report brief",
@@ -61,6 +62,7 @@ export function ImpactReporterDemo() {
   const [selectedEvidenceId, setSelectedEvidenceId] = useState("E3");
   const [selectedClaimId, setSelectedClaimId] = useState("C3");
   const [exportText, setExportText] = useState("");
+  const [humanReviewApproved, setHumanReviewApproved] = useState(false);
   const [sampleText, setSampleText] = useState(samplePacketText);
   const [sampleDataset, setSampleDataset] = useState<ReportDataset | null>(null);
 
@@ -75,6 +77,19 @@ export function ImpactReporterDemo() {
   );
   const selectedClaim = activeClaims.find((claim) => claim.id === selectedClaimId);
   const blockedClaims = activeClaims.filter((claim) => claim.status === "blocked");
+  const cleanExportReadiness = useMemo(
+    () =>
+      evaluateCleanExportReadiness({
+        claims: activeClaims,
+        evidence: activeEvidence,
+        requirements: activeRequirements,
+        humanReviewApproved,
+      }),
+    [activeClaims, activeEvidence, activeRequirements, humanReviewApproved],
+  );
+  const exportBlockers = cleanExportReadiness.findings.filter(
+    (finding) => finding.blocking,
+  );
 
   const selectedClaimEvidence = useMemo(
     () =>
@@ -89,6 +104,7 @@ export function ImpactReporterDemo() {
     setSelectedEvidenceId("E3");
     setSelectedClaimId("C3");
     setExportText("");
+    setHumanReviewApproved(false);
     setSampleText(samplePacketText);
     setSampleDataset(null);
   }
@@ -99,6 +115,7 @@ export function ImpactReporterDemo() {
     setSelectedEvidenceId(dataset.evidence[0]?.id ?? "S1");
     setSelectedClaimId(dataset.claims[0]?.id ?? "SC1");
     setExportText("");
+    setHumanReviewApproved(false);
     setActiveStep("Evidence ledger");
   }
 
@@ -398,8 +415,35 @@ export function ImpactReporterDemo() {
                   not hidden in polished prose.
                 </p>
               </div>
+              <label className="mt-5 flex items-start gap-3 border border-[#d6b86a] bg-[#fff8df] p-4 text-sm leading-6 text-[#604514]">
+                <input
+                  checked={humanReviewApproved}
+                  className="mt-1 h-4 w-4 accent-[#1f4d3a]"
+                  onChange={(event) => {
+                    setHumanReviewApproved(event.target.checked);
+                    setExportText("");
+                  }}
+                  type="checkbox"
+                />
+                <span>
+                  Human review completed for this synthetic pilot export.
+                </span>
+              </label>
+              {exportBlockers.length > 0 && (
+                <div className="mt-3 border border-[#d28f82] bg-[#fff0ed] p-4 text-sm leading-6 text-[#7a3528]">
+                  <p className="font-semibold">Clean export blocked</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {exportBlockers.map((finding) => (
+                      <li key={`${finding.code}-${finding.entityId}`}>
+                        {finding.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <button
-                className="mt-5 inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                className="mt-5 inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68] disabled:cursor-not-allowed disabled:bg-[#9aa9a1]"
+                disabled={!cleanExportReadiness.canExport}
                 onClick={() =>
                   setExportText(
                     sampleDataset

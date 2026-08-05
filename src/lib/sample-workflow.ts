@@ -69,12 +69,21 @@ function classifyEvidence(line: string): Pick<
     };
   }
 
-  if (/attend|resident|student|participant|workshop|session|delivered/i.test(line)) {
+  if (/attended|attendance|enrolled|average attendance|youth|residents/i.test(line)) {
     return {
       kind: "attendance_metric",
       supportClass: "output",
       status: "accepted",
-      requirementIds: /activity|completed|delivered/i.test(line) ? ["R1"] : ["R2"],
+      requirementIds: ["R2"],
+    };
+  }
+
+  if (/activity|activities|completed|workshop|session|delivered/i.test(line)) {
+    return {
+      kind: "attendance_metric",
+      supportClass: "output",
+      status: "accepted",
+      requirementIds: ["R1"],
     };
   }
 

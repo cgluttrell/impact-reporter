@@ -27,8 +27,22 @@ test("static demo supports the four-step workflow and export", async ({
   await expect(
     page.getByText("1 blocked claim excluded from clean export"),
   ).toBeVisible();
+  await expect(page.getByText("Clean export blocked")).toBeVisible();
+  await expect(
+    page.getByText("Clean export requires recorded human review."),
+  ).toBeVisible();
 
-  await page.getByRole("button", { name: /Generate Markdown export/ }).click();
+  const exportButton = page.getByRole("button", {
+    name: /Generate Markdown export/,
+  });
+  await expect(exportButton).toBeDisabled();
+
+  await page
+    .getByLabel("Human review completed for this synthetic pilot export.")
+    .check();
+  await expect(exportButton).toBeEnabled();
+
+  await exportButton.click();
   await expect(page.getByText("Winter Learning Lab Progress Update")).toBeVisible();
   await expect(page.locator("pre")).toContainText("Blocked claim excluded");
 
@@ -144,6 +158,12 @@ Next cycle, add a pre/post design vocabulary check.`);
   await expect(page.getByText("blocked").first()).toBeVisible();
 
   await page.getByRole("button", { name: /Step 4 Review and export/ }).click();
+  await expect(
+    page.getByText("Clean export requires recorded human review."),
+  ).toBeVisible();
+  await page
+    .getByLabel("Human review completed for this synthetic pilot export.")
+    .check();
   await page.getByRole("button", { name: /Generate Markdown export/ }).click();
 
   await expect(page.getByLabel("Generated Markdown export")).toContainText(
