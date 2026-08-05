@@ -3,6 +3,7 @@
 import {
   AlertTriangle,
   Ban,
+  BookOpen,
   CheckCircle2,
   ClipboardCheck,
   Download,
@@ -73,16 +74,28 @@ export function ImpactReporterDemo() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.08em] text-[#52615a]">
-              Build for Good demo
+              Community impact reporting pilot
             </p>
             <h1 className="text-2xl font-semibold tracking-normal">
               Impact Reporter
             </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#405048]">
+              A safe first version of an evidence-linked reporting assistant for
+              nonprofit and education teams: draft what you can prove, flag what
+              you cannot, and keep human review in control.
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded border border-[#8aa398] px-3 py-2 text-sm font-medium text-[#24342e]">
-              Synthetic data only
+              Safe pilot: synthetic data only
             </span>
+            <a
+              className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-3 py-2 text-sm font-medium hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+              href="/guide"
+            >
+              <BookOpen aria-hidden className="h-4 w-4" />
+              Guide
+            </a>
             <button
               className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-[#f6f7f4] px-3 py-2 text-sm font-medium hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
               onClick={() => {
@@ -132,8 +145,9 @@ export function ImpactReporterDemo() {
                 <div>
                   <h2 className="text-xl font-semibold">Report brief</h2>
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-[#405048]">
-                    The sample is preloaded so reviewers can evaluate the trust
-                    workflow without setup or credentials.
+                    This safe pilot is preloaded with a fictional program packet
+                    so nonprofit staff, reviewers, and builders can evaluate the
+                    trust workflow before any real data handling is enabled.
                   </p>
                 </div>
                 <span className="rounded border border-[#d6b86a] bg-[#fff8df] px-3 py-2 text-sm font-medium text-[#604514]">
@@ -379,7 +393,7 @@ export function ImpactReporterDemo() {
             <ul className="mt-4 space-y-3 text-sm leading-6">
               <li className="flex gap-2">
                 <CheckCircle2 aria-hidden className="mt-1 h-4 w-4" />
-                Static demo mode works without an API key.
+                Safe pilot mode works without an API key.
               </li>
               <li className="flex gap-2">
                 <AlertTriangle aria-hidden className="mt-1 h-4 w-4" />

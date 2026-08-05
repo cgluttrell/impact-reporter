@@ -7,7 +7,11 @@ test("static demo supports the four-step workflow and export", async ({
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Impact Reporter" })).toBeVisible();
-  await expect(page.getByText("Synthetic data only")).toBeVisible();
+  await expect(page.getByText("Safe pilot: synthetic data only")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Guide" })).toHaveAttribute(
+    "href",
+    "/guide",
+  );
 
   await page.getByRole("button", { name: /Step 2 Evidence ledger/ }).click();
   await expect(page.getByRole("heading", { name: "Evidence ledger" })).toBeVisible();
@@ -73,6 +77,32 @@ test("optional live routes are safe without a server-side key", async ({
 
 test("homepage has no serious or critical axe violations", async ({ page }) => {
   await page.goto("/");
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+
+  const seriousOrCritical = results.violations.filter((violation) =>
+    ["serious", "critical"].includes(violation.impact ?? ""),
+  );
+
+  expect(seriousOrCritical).toEqual([]);
+});
+
+test("guide page explains the pilot boundary and next MVP slice", async ({
+  page,
+}) => {
+  await page.goto("/guide");
+
+  await expect(
+    page.getByRole("heading", {
+      name: "Use Impact Reporter as a safe reporting pilot",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("No real participant")).toBeVisible();
+  await expect(
+    page.getByText("bring-your-own sample evidence workflow"),
+  ).toBeVisible();
+
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

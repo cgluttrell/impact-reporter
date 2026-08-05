@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Impact Reporter",
   description:
-    "Evidence-linked synthetic nonprofit reporting demo for Build for Good.",
+    "Evidence-linked nonprofit reporting pilot for safer community-impact reporting.",
 };
 
 export default function RootLayout({

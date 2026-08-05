@@ -1,14 +1,14 @@
 # Impact Reporter
 
-Impact Reporter is a public-safe demo workbench for evidence-linked nonprofit
-progress reporting.
+Impact Reporter is an evidence-linked reporting pilot for nonprofit and
+education teams.
 
 The narrow product promise:
 
 > Draft what you can prove. Flag what you cannot.
 
-The demo uses a fully synthetic program, Neighborhood Learning Lab, to show a
-four-step reporting workflow:
+The current hosted version uses a fully synthetic program, Neighborhood Learning
+Lab, as the safe first mode for a four-step reporting workflow:
 
 1. Define the report brief.
 2. Confirm the evidence ledger.
@@ -17,9 +17,10 @@ four-step reporting workflow:
 
 ## Current Status
 
-This repository is in early Build for Good implementation. The first committed
-state is a governed scaffold. After this bootstrap, all changes must use the
-task/issue/branch/PR/QA/Chris-merge workflow.
+This repository is in early Build for Good implementation. The deployed version
+is a safe static pilot, not the final product. The next MVP slice is controlled
+bring-your-own sample evidence input with verifier checks and export, before
+login, saved workspaces, or real nonprofit data handling.
 
 ## Data Boundary
 
@@ -61,6 +62,7 @@ as the static vertical slice lands.
 ## Documentation
 
 - [User guide](docs/user-guide.md)
+- [MVP roadmap](docs/mvp-roadmap.md)
 - [Architecture](docs/architecture.md)
 - [Demo walkthrough](docs/demo-walkthrough.md)
 - [Verifier contract](docs/verifier-contract.md)
@@ -80,3 +82,4 @@ traceability once code work begins:
 - T1739 / Issue #3: verifier and fixture test suite
 - T1740 / Issue #4: optional live OpenAI route
 - T1741 / Issue #5: public docs, QA, deployment, and submission package
+- T1747 / Issue #19: product reframing and next MVP direction
