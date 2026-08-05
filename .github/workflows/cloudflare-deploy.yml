@@ -1,0 +1,106 @@
+name: Cloudflare Worker
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cloudflare-deploy.yml"
+      - "src/**"
+      - "tests/**"
+      - "docs/deployment.md"
+      - "open-next.config.ts"
+      - "wrangler.jsonc"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "next.config.ts"
+      - "tsconfig.json"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: impact-reporter-cloudflare-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: QA and Cloudflare build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run QA
+        run: pnpm qa
+
+      - name: Build Cloudflare bundle
+        run: pnpm exec opennextjs-cloudflare build
+
+      - name: Dry-run Cloudflare deploy
+        run: pnpm exec wrangler deploy --dry-run
+
+  deploy:
+    name: Deploy Cloudflare Worker
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://impact-reporter.chris-luttrell.workers.dev/
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_DEPLOY_ENABLED: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED }}
+    steps:
+      - name: Check deploy gate
+        run: |
+          if [ "$CLOUDFLARE_DEPLOY_ENABLED" != "true" ]; then
+            echo "CLOUDFLARE_DEPLOY_ENABLED is not true; skipping publish."
+            exit 0
+          fi
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Cloudflare deploy is enabled, but required GitHub secrets are missing."
+            exit 1
+          fi
+
+      - name: Check out repository
+        if: env.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        if: env.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Set up Node.js
+        if: env.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        if: env.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Cloudflare
+        if: env.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+        run: pnpm deploy

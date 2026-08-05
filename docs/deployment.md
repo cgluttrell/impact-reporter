@@ -48,6 +48,34 @@ Workers Assets. Do not use the deprecated `next-on-pages` package.
 7. Capture desktop and mobile screenshots.
 8. Record the approved URL in Mission Control.
 
+## GitHub Actions deploy automation
+
+The repo includes `.github/workflows/cloudflare-deploy.yml` so deployment can be
+driven by GitHub after merges instead of a local Wrangler OAuth session.
+
+The workflow has two gates:
+
+- Pull requests and `main` pushes run `pnpm qa`, `opennextjs-cloudflare build`,
+  and `wrangler deploy --dry-run`.
+- Publishing runs only on `main` or manual dispatch, and only when
+  `CLOUDFLARE_DEPLOY_ENABLED` is set to `true`.
+
+Required GitHub repository settings before automatic publish:
+
+1. Secret: `CLOUDFLARE_API_TOKEN`
+   - Use a Cloudflare API token scoped to the account and Worker.
+   - Grant only the minimum Workers edit/deploy permissions needed for
+     `impact-reporter`.
+   - Do not use the broad local Wrangler OAuth token for CI.
+2. Secret: `CLOUDFLARE_ACCOUNT_ID`
+   - Use the Cloudflare account ID for the LIW account.
+3. Variable: `CLOUDFLARE_DEPLOY_ENABLED`
+   - Set to `true` only after the token and account ID are in place.
+
+The automation does not set `OPENAI_API_KEY`, `OPENAI_MODEL`, or
+`IMPACT_REPORTER_LIVE_AI`. Live AI stays controlled by Cloudflare Worker
+environment configuration and still requires Chris's explicit approval.
+
 ## Enabling hosted live AI later
 
 Do not enable hosted live AI until Chris explicitly approves the data boundary,
