@@ -17,6 +17,8 @@ Vercel remains a fallback if Cloudflare setup creates unexpected friction.
 - Static demo mode is confirmed to work without `OPENAI_API_KEY`.
 - Public hosted live model calls remain disabled unless Chris explicitly
   approves enabling them.
+- Hosted live model calls require both `IMPACT_REPORTER_LIVE_AI=enabled` and a
+  server-side `OPENAI_API_KEY`.
 
 ## Vercel outline
 
@@ -36,7 +38,8 @@ Workers Assets. Do not use the deprecated `next-on-pages` package.
 
 1. Connect `cgluttrell/impact-reporter` in Cloudflare Workers/Pages builds or
    deploy from an authenticated local shell.
-2. Keep the first public demo static/no-key by leaving `OPENAI_API_KEY` unset.
+2. Keep the first public demo static/no-key by leaving
+   `IMPACT_REPORTER_LIVE_AI` unset and `OPENAI_API_KEY` unset.
 3. Use the repo's checked-in `wrangler.jsonc` and `open-next.config.ts`.
 4. Deploy only after `pnpm qa` and `pnpm preview` pass.
 5. Use `pnpm deploy` for an authenticated CLI deploy, or configure Cloudflare's
@@ -44,6 +47,23 @@ Workers Assets. Do not use the deprecated `next-on-pages` package.
 6. Run the browser QA checklist against the production URL.
 7. Capture desktop and mobile screenshots.
 8. Record the approved URL in Mission Control.
+
+## Enabling hosted live AI later
+
+Do not enable hosted live AI until Chris explicitly approves the data boundary,
+model, and deployment window.
+
+When approved:
+
+1. Keep real nonprofit, participant, student, client, financial, regulated, and
+   confidential data out of the public pilot until a production data policy is
+   approved.
+2. Set `IMPACT_REPORTER_LIVE_AI=enabled` as a server-side deployment variable.
+3. Set `OPENAI_API_KEY` as a Cloudflare secret, not in source control.
+4. Optionally set `OPENAI_MODEL` server-side.
+5. Redeploy, then verify `/api/extract` and `/api/draft` with synthetic sample
+   input only.
+6. Confirm responses remain structured and verifier review remains authoritative.
 
 ## Current environment note
 

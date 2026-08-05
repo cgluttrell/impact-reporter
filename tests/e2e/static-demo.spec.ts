@@ -59,7 +59,7 @@ test("optional live routes are safe without a server-side key", async ({
   expect(extract.ok()).toBe(true);
   await expect(extract.json()).resolves.toMatchObject({
     mode: "static",
-    status: "no_key",
+    status: "live_disabled",
   });
 
   const draft = await request.post("/api/draft", {
@@ -71,7 +71,7 @@ test("optional live routes are safe without a server-side key", async ({
   expect(draft.ok()).toBe(true);
   await expect(draft.json()).resolves.toMatchObject({
     mode: "static",
-    status: "no_key",
+    status: "live_disabled",
   });
 });
 

@@ -16,6 +16,7 @@ and avoid raw evidence logging.
 Current live-route safety defaults:
 
 - no key required for static demo mode
+- live AI remains disabled unless `IMPACT_REPORTER_LIVE_AI=enabled`
 - `OPENAI_API_KEY` is read server-side only
 - `OPENAI_MODEL` is optional and server-side
 - request input is bounded
