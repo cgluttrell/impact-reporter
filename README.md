@@ -10,6 +10,8 @@ The narrow product promise:
 The current hosted version uses a fully synthetic program, Neighborhood Learning
 Lab, as the safe first mode for a four-step reporting workflow:
 
+Hosted demo: `https://impact-reporter.luttrell.works/`
+
 1. Define the report brief.
 2. Confirm the evidence ledger.
 3. Review coverage and draft evidence-linked claims.

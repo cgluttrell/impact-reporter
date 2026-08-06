@@ -9,7 +9,7 @@ confidential information.
 
 Live demo:
 
-https://impact-reporter.chris-luttrell.workers.dev/
+https://impact-reporter.luttrell.works/
 
 ## Who This Is For
 
@@ -159,7 +159,7 @@ The hosted demo is static/no-key:
 - no file upload
 - no real AI extraction or drafting
 - no production data handling
-- no custom domain yet
+- hosted at `https://impact-reporter.luttrell.works/`
 
 Optional live AI routes exist in the codebase, but the hosted demo leaves
 `OPENAI_API_KEY` unset. Those routes return safe `no_key` responses until Chris

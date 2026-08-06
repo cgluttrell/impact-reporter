@@ -40,7 +40,8 @@ Workers Assets. Do not use the deprecated `next-on-pages` package.
    deploy from an authenticated local shell.
 2. Keep the first public demo static/no-key by leaving
    `IMPACT_REPORTER_LIVE_AI` unset and `OPENAI_API_KEY` unset.
-3. Use the repo's checked-in `wrangler.jsonc` and `open-next.config.ts`.
+3. Use the repo's checked-in `wrangler.jsonc`, `open-next.config.ts`, and the
+   branded custom domain `impact-reporter.luttrell.works`.
 4. Deploy only after `pnpm qa` and `pnpm preview` pass.
 5. Use `pnpm run deploy` for an authenticated CLI deploy, or configure
    Cloudflare's build/deploy flow to run the equivalent OpenNext Cloudflare
@@ -58,8 +59,9 @@ The workflow has two gates:
 
 - Pull requests and `main` pushes run `pnpm qa`, `opennextjs-cloudflare build`,
   and `wrangler deploy --dry-run`.
-- Publishing runs only on `main` or manual dispatch, and only when
-  `CLOUDFLARE_DEPLOY_ENABLED` is set to `true`.
+- Publishing runs only on `main` or manual dispatch, only when
+  `CLOUDFLARE_DEPLOY_ENABLED` is set to `true`, and targets
+  `https://impact-reporter.luttrell.works/`.
 
 Required GitHub repository settings before automatic publish:
 
