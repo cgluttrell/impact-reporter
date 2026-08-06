@@ -1,7 +1,11 @@
 export const MAX_LIVE_INPUT_CHARS = 6000;
 export const MAX_SOURCE_ARTIFACT_ID_CHARS = 120;
+export const LIVE_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+export const LIVE_RATE_LIMIT_MAX_REQUESTS = 10;
 export const LIVE_AI_ENABLE_VALUE = "enabled";
 export const DEFAULT_OPENAI_MODEL = "gpt-4.1-mini";
+
+const liveRequestCounts = new Map<string, { count: number; resetAt: number }>();
 
 export type LiveRouteValidation =
   | { ok: true; sourceArtifactId: string; note: string }
@@ -36,6 +40,10 @@ export type LiveRouteConfig =
       message: string;
     };
 
+export type LiveRateLimitResult =
+  | { ok: true; remaining: number; resetAt: number }
+  | { ok: false; status: 429; error: string; resetAt: number };
+
 export function resolveLiveRouteConfig(
   env: Record<string, string | undefined>,
 ): LiveRouteConfig {
@@ -62,6 +70,53 @@ export function resolveLiveRouteConfig(
   }
 
   return { ready: true, apiKey, model };
+}
+
+export function clientKeyFromHeaders(headers: Headers) {
+  return (
+    headers.get("cf-connecting-ip")?.trim() ||
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown-client"
+  );
+}
+
+export function checkLiveRateLimit(input: {
+  clientKey: string;
+  now?: number;
+  windowMs?: number;
+  maxRequests?: number;
+}): LiveRateLimitResult {
+  const now = input.now ?? Date.now();
+  const windowMs = input.windowMs ?? LIVE_RATE_LIMIT_WINDOW_MS;
+  const maxRequests = input.maxRequests ?? LIVE_RATE_LIMIT_MAX_REQUESTS;
+  const current = liveRequestCounts.get(input.clientKey);
+
+  if (!current || current.resetAt <= now) {
+    const resetAt = now + windowMs;
+    liveRequestCounts.set(input.clientKey, { count: 1, resetAt });
+    return { ok: true, remaining: maxRequests - 1, resetAt };
+  }
+
+  if (current.count >= maxRequests) {
+    return {
+      ok: false,
+      status: 429,
+      error: "Live AI request limit reached. Try again later.",
+      resetAt: current.resetAt,
+    };
+  }
+
+  current.count += 1;
+  liveRequestCounts.set(input.clientKey, current);
+  return { ok: true, remaining: maxRequests - current.count, resetAt: current.resetAt };
+}
+
+export function liveRateLimitHeaders(result: LiveRateLimitResult) {
+  return {
+    "X-RateLimit-Limit": String(LIVE_RATE_LIMIT_MAX_REQUESTS),
+    "X-RateLimit-Remaining": result.ok ? String(result.remaining) : "0",
+    "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
+  };
 }
 
 export function validateLiveRequestBody(body: unknown): LiveRouteValidation {
@@ -300,6 +355,10 @@ export function staticModeResponse(env: Record<string, string | undefined>) {
       status: "ready",
       message: "Live AI is configured for POST requests.",
       model: liveConfig.model,
+      rateLimit: {
+        windowSeconds: LIVE_RATE_LIMIT_WINDOW_MS / 1000,
+        maxRequests: LIVE_RATE_LIMIT_MAX_REQUESTS,
+      },
     });
   }
 
