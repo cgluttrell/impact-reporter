@@ -6,6 +6,7 @@ export const LIVE_AI_ENABLE_VALUE = "enabled";
 export const DEFAULT_OPENAI_MODEL = "gpt-4.1-mini";
 
 const liveRequestCounts = new Map<string, { count: number; resetAt: number }>();
+const LIVE_RATE_LIMIT_PRUNE_THRESHOLD = 1000;
 
 export type LiveRouteValidation =
   | { ok: true; sourceArtifactId: string; note: string }
@@ -89,6 +90,13 @@ export function checkLiveRateLimit(input: {
   const now = input.now ?? Date.now();
   const windowMs = input.windowMs ?? LIVE_RATE_LIMIT_WINDOW_MS;
   const maxRequests = input.maxRequests ?? LIVE_RATE_LIMIT_MAX_REQUESTS;
+
+  if (liveRequestCounts.size > LIVE_RATE_LIMIT_PRUNE_THRESHOLD) {
+    for (const [key, value] of liveRequestCounts.entries()) {
+      if (value.resetAt <= now) liveRequestCounts.delete(key);
+    }
+  }
+
   const current = liveRequestCounts.get(input.clientKey);
 
   if (!current || current.resetAt <= now) {
@@ -117,6 +125,17 @@ export function liveRateLimitHeaders(result: LiveRateLimitResult) {
     "X-RateLimit-Remaining": result.ok ? String(result.remaining) : "0",
     "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
   };
+}
+
+export function withLiveRateLimitHeaders(
+  response: Response,
+  rateLimit: LiveRateLimitResult,
+) {
+  for (const [header, value] of Object.entries(liveRateLimitHeaders(rateLimit))) {
+    response.headers.set(header, value);
+  }
+
+  return response;
 }
 
 export function validateLiveRequestBody(body: unknown): LiveRouteValidation {

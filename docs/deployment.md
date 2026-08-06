@@ -18,6 +18,9 @@ Vercel remains a fallback if Cloudflare setup creates unexpected friction.
   the project maintainer after data-boundary review.
 - Hosted live model calls require both `IMPACT_REPORTER_LIVE_AI=enabled` and a
   server-side `OPENAI_API_KEY`.
+- Hosted live model calls also require Cloudflare-level rate limiting and origin
+  controls; the application-level limiter is only a best-effort per-isolate
+  backstop.
 
 ## Vercel outline
 
