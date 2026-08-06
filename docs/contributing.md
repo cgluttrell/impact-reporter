@@ -1,14 +1,13 @@
 # Contributing
 
-After the initial repository bootstrap, every change uses the governed workflow:
+Every change should stay focused and reviewable:
 
-1. Mission Control task and GitHub issue.
-2. Task branch in a local worktree.
-3. Focused implementation.
-4. Lint, typecheck, tests, build, and any relevant browser/accessibility QA.
-5. Pull request with evidence.
-6. Chris reviews and merges.
-7. Post-merge cleanup and Mission Control closeout.
+1. Open or reference a focused GitHub issue when the work needs tracking.
+2. Create a task branch.
+3. Keep implementation scoped to the issue or pull request.
+4. Run lint, typecheck, tests, build, and any relevant browser/accessibility QA.
+5. Open a pull request with validation evidence.
+6. Wait for maintainer review before merge.
 
 Do not commit secrets, real data, confidential context, or generated artifacts
 that include private values.

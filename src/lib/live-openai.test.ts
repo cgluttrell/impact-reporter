@@ -4,7 +4,9 @@ import {
   DEFAULT_OPENAI_MODEL,
   evidenceExtractionSchema,
   MAX_LIVE_INPUT_CHARS,
+  MAX_SOURCE_ARTIFACT_ID_CHARS,
   resolveLiveRouteConfig,
+  staticModeResponse,
   validateLiveRequestBody,
 } from "./live-openai";
 
@@ -52,6 +54,51 @@ describe("live OpenAI route helpers", () => {
     expect(result).toMatchObject({
       ok: false,
       status: 413,
+    });
+  });
+
+  it("rejects source artifact IDs over the live input limit", () => {
+    const result = validateLiveRequestBody({
+      sourceArtifactId: "x".repeat(MAX_SOURCE_ARTIFACT_ID_CHARS + 1),
+      note: "Synthetic note text",
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      status: 413,
+    });
+  });
+
+  it("keeps the evidence extraction schema strict-compatible", () => {
+    const schema = evidenceExtractionSchema();
+    const candidates = schema.properties.candidates as {
+      items: {
+        required: string[];
+        properties: Record<string, unknown>;
+      };
+    };
+
+    expect(candidates.items.required).toEqual(
+      expect.arrayContaining([
+        "periodRef",
+        "proposedValue",
+        "proposedUnit",
+        "requiresHumanConfirmation",
+      ]),
+    );
+    expect(candidates.items.properties).toMatchObject({
+      periodRef: { type: ["string", "null"] },
+      proposedValue: { type: ["number", "null"] },
+      proposedUnit: { type: ["string", "null"] },
+      requiresHumanConfirmation: { type: "boolean", enum: [true] },
+    });
+  });
+
+  it("returns friendly static-mode metadata for GET probes", async () => {
+    const response = await staticModeResponse({});
+    await expect(response.json()).resolves.toMatchObject({
+      mode: "static",
+      status: "live_disabled",
     });
   });
 

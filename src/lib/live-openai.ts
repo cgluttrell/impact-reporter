@@ -1,4 +1,5 @@
 export const MAX_LIVE_INPUT_CHARS = 6000;
+export const MAX_SOURCE_ARTIFACT_ID_CHARS = 120;
 export const LIVE_AI_ENABLE_VALUE = "enabled";
 export const DEFAULT_OPENAI_MODEL = "gpt-4.1-mini";
 
@@ -79,6 +80,14 @@ export function validateLiveRequestBody(body: unknown): LiveRouteValidation {
     };
   }
 
+  if (sourceArtifactId.length > MAX_SOURCE_ARTIFACT_ID_CHARS) {
+    return {
+      ok: false,
+      status: 413,
+      error: `sourceArtifactId is limited to ${MAX_SOURCE_ARTIFACT_ID_CHARS} characters.`,
+    };
+  }
+
   if (typeof note !== "string" || note.trim().length === 0) {
     return { ok: false, status: 400, error: "note is required." };
   }
@@ -111,6 +120,9 @@ export function evidenceExtractionSchema() {
             "evidenceType",
             "sourceExcerpt",
             "claimClass",
+            "periodRef",
+            "proposedValue",
+            "proposedUnit",
             "ambiguities",
             "requiresHumanConfirmation",
           ],
@@ -132,11 +144,11 @@ export function evidenceExtractionSchema() {
               type: "string",
               enum: ["output", "outcome", "anecdotal", "context", "unknown"],
             },
-            periodRef: { type: "string" },
-            proposedValue: { type: "number" },
-            proposedUnit: { type: "string" },
+            periodRef: { type: ["string", "null"] },
+            proposedValue: { type: ["number", "null"] },
+            proposedUnit: { type: ["string", "null"] },
             ambiguities: { type: "array", items: { type: "string" } },
-            requiresHumanConfirmation: { const: true },
+            requiresHumanConfirmation: { type: "boolean", enum: [true] },
           },
         },
       },
@@ -277,6 +289,25 @@ export function draftPackageSchema() {
       },
     },
   };
+}
+
+export function staticModeResponse(env: Record<string, string | undefined>) {
+  const liveConfig = resolveLiveRouteConfig(env);
+
+  if (liveConfig.ready) {
+    return Response.json({
+      mode: "live",
+      status: "ready",
+      message: "Live AI is configured for POST requests.",
+      model: liveConfig.model,
+    });
+  }
+
+  return Response.json({
+    mode: "static",
+    status: liveConfig.status,
+    message: liveConfig.message,
+  });
 }
 
 export function buildResponsesRequest(input: {

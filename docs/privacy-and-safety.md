@@ -21,4 +21,5 @@ Current live-route safety defaults:
 - `OPENAI_MODEL` is optional and server-side
 - request input is bounded
 - no real data is allowed
-- public hosted live calls require Chris approval before enablement
+- public hosted live calls require project maintainer approval after
+  data-boundary review before enablement
