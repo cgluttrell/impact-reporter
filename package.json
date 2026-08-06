@@ -13,6 +13,7 @@
     "qa": "pnpm test && pnpm lint && pnpm typecheck && pnpm test:e2e",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && wrangler deploy --domain impact-reporter.luttrell.works",
+    "deploy:ci": "opennextjs-cloudflare build && wrangler deploy",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
