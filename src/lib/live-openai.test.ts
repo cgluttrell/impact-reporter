@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   buildResponsesRequest,
+  checkLiveRateLimit,
+  clientKeyFromHeaders,
   DEFAULT_OPENAI_MODEL,
   evidenceExtractionSchema,
+  LIVE_RATE_LIMIT_MAX_REQUESTS,
+  LIVE_RATE_LIMIT_WINDOW_MS,
   MAX_LIVE_INPUT_CHARS,
   MAX_SOURCE_ARTIFACT_ID_CHARS,
   resolveLiveRouteConfig,
@@ -99,6 +103,62 @@ describe("live OpenAI route helpers", () => {
     await expect(response.json()).resolves.toMatchObject({
       mode: "static",
       status: "live_disabled",
+    });
+  });
+
+  it("returns live readiness metadata without exposing secrets", async () => {
+    const response = await staticModeResponse({
+      IMPACT_REPORTER_LIVE_AI: "enabled",
+      OPENAI_API_KEY: "test-key",
+      OPENAI_MODEL: "test-model",
+    });
+
+    await expect(response.json()).resolves.toEqual({
+      mode: "live",
+      status: "ready",
+      message: "Live AI is configured for POST requests.",
+      model: "test-model",
+      rateLimit: {
+        windowSeconds: LIVE_RATE_LIMIT_WINDOW_MS / 1000,
+        maxRequests: LIVE_RATE_LIMIT_MAX_REQUESTS,
+      },
+    });
+  });
+
+  it("derives the client key from Cloudflare or forwarded headers", () => {
+    expect(
+      clientKeyFromHeaders(new Headers({ "cf-connecting-ip": "203.0.113.9" })),
+    ).toBe("203.0.113.9");
+    expect(
+      clientKeyFromHeaders(
+        new Headers({ "x-forwarded-for": "198.51.100.4, 10.0.0.1" }),
+      ),
+    ).toBe("198.51.100.4");
+  });
+
+  it("rate limits live requests by client and window", () => {
+    const clientKey = `test-client-${crypto.randomUUID()}`;
+    const now = 12345;
+
+    for (let index = 0; index < LIVE_RATE_LIMIT_MAX_REQUESTS; index += 1) {
+      expect(checkLiveRateLimit({ clientKey, now })).toMatchObject({
+        ok: true,
+      });
+    }
+
+    expect(checkLiveRateLimit({ clientKey, now })).toMatchObject({
+      ok: false,
+      status: 429,
+    });
+
+    expect(
+      checkLiveRateLimit({
+        clientKey,
+        now: now + LIVE_RATE_LIMIT_WINDOW_MS + 1,
+      }),
+    ).toMatchObject({
+      ok: true,
+      remaining: LIVE_RATE_LIMIT_MAX_REQUESTS - 1,
     });
   });
 

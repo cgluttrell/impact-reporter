@@ -1,7 +1,10 @@
 import {
   buildResponsesRequest,
   callOpenAIResponses,
+  checkLiveRateLimit,
+  clientKeyFromHeaders,
   evidenceExtractionSchema,
+  liveRateLimitHeaders,
   resolveLiveRouteConfig,
   staticModeResponse,
   validateLiveRequestBody,
@@ -32,6 +35,17 @@ export async function POST(request: Request) {
     });
   }
 
+  const rateLimit = checkLiveRateLimit({
+    clientKey: clientKeyFromHeaders(request.headers),
+  });
+
+  if (!rateLimit.ok) {
+    return Response.json(
+      { mode: "live", status: "rate_limited", error: rateLimit.error },
+      { headers: liveRateLimitHeaders(rateLimit), status: rateLimit.status },
+    );
+  }
+
   const openAIRequest = buildResponsesRequest({
     model: liveConfig.model,
     schemaName: "EvidenceExtraction",
@@ -44,5 +58,14 @@ export async function POST(request: Request) {
     }),
   });
 
-  return callOpenAIResponses({ apiKey: liveConfig.apiKey, request: openAIRequest });
+  const response = await callOpenAIResponses({
+    apiKey: liveConfig.apiKey,
+    request: openAIRequest,
+  });
+
+  for (const [header, value] of Object.entries(liveRateLimitHeaders(rateLimit))) {
+    response.headers.set(header, value);
+  }
+
+  return response;
 }
