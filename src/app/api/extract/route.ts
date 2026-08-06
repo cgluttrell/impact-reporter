@@ -8,6 +8,7 @@ import {
   resolveLiveRouteConfig,
   staticModeResponse,
   validateLiveRequestBody,
+  withLiveRateLimitHeaders,
 } from "@/lib/live-openai";
 
 export async function GET() {
@@ -58,14 +59,11 @@ export async function POST(request: Request) {
     }),
   });
 
-  const response = await callOpenAIResponses({
-    apiKey: liveConfig.apiKey,
-    request: openAIRequest,
-  });
-
-  for (const [header, value] of Object.entries(liveRateLimitHeaders(rateLimit))) {
-    response.headers.set(header, value);
-  }
-
-  return response;
+  return withLiveRateLimitHeaders(
+    await callOpenAIResponses({
+      apiKey: liveConfig.apiKey,
+      request: openAIRequest,
+    }),
+    rateLimit,
+  );
 }

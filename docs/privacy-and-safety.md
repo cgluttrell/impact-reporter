@@ -20,6 +20,11 @@ Current live-route safety defaults:
 - `OPENAI_API_KEY` is read server-side only
 - `OPENAI_MODEL` is optional and server-side
 - request input is bounded
+- live routes include a best-effort per-isolate request limit
 - no real data is allowed
 - public hosted live calls require project maintainer approval after
   data-boundary review before enablement
+
+The checked-in request limiter is a backstop, not the full hosted abuse-control
+plan. Production live mode still needs Cloudflare-level rate limiting and origin
+controls before a public key-backed demo window.
