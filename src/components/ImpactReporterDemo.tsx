@@ -63,7 +63,7 @@ export function ImpactReporterDemo() {
   const [selectedClaimId, setSelectedClaimId] = useState("C3");
   const [exportText, setExportText] = useState("");
   const [humanReviewApproved, setHumanReviewApproved] = useState(false);
-  const [sampleText, setSampleText] = useState(samplePacketText);
+  const [sampleText, setSampleText] = useState("");
   const [sampleDataset, setSampleDataset] = useState<ReportDataset | null>(null);
 
   const activeBrief = sampleDataset?.projectBrief ?? projectBrief;
@@ -105,11 +105,13 @@ export function ImpactReporterDemo() {
     setSelectedClaimId("C3");
     setExportText("");
     setHumanReviewApproved(false);
-    setSampleText(samplePacketText);
+    setSampleText("");
     setSampleDataset(null);
   }
 
   function analyzeSamplePacket() {
+    if (!sampleText.trim()) return;
+
     const dataset = buildSampleWorkflow(sampleText);
     setSampleDataset(dataset);
     setSelectedEvidenceId(dataset.evidence[0]?.id ?? "S1");
@@ -207,11 +209,11 @@ export function ImpactReporterDemo() {
                 <div>
                   <h2 className="text-xl font-semibold">Report brief</h2>
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-[#405048]">
-                    This safe pilot is preloaded with a fictional program packet
-                    so nonprofit staff, reviewers, and builders can evaluate the
-                    trust workflow before any real data handling is enabled. You
-                    can also paste a small safe sample packet to test the
-                    workflow with different evidence.
+                    Start with the preloaded fictional report, then follow the
+                    evidence trail through draft claims, blocked language, human
+                    review, and export. You can optionally paste your own safe
+                    sample packet below to see how the workflow reacts to
+                    different evidence.
                   </p>
                 </div>
                 <span className="rounded border border-[#d6b86a] bg-[#fff8df] px-3 py-2 text-sm font-medium text-[#604514]">
@@ -219,14 +221,33 @@ export function ImpactReporterDemo() {
                 </span>
               </div>
 
+              <div className="mt-5 flex flex-wrap gap-2">
+                <button
+                  className="inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                  onClick={() => setActiveStep("Evidence ledger")}
+                  type="button"
+                >
+                  <Search aria-hidden className="h-4 w-4" />
+                  Start preloaded walkthrough
+                </button>
+                <a
+                  className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-4 py-3 text-sm font-semibold hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                  href="/guide"
+                >
+                  <BookOpen aria-hidden className="h-4 w-4" />
+                  Read the guide
+                </a>
+              </div>
+
               <section className="mt-5 border border-[#d6b86a] bg-[#fffdf2] p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold">Safe sample packet</h3>
+                    <h3 className="font-semibold">Try another safe sample packet</h3>
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-[#604514]">
-                      Paste synthetic or non-confidential sample notes only. This
-                      runs locally in the browser for this pilot: no upload,
-                      login, storage, or live AI call.
+                      Paste synthetic or non-confidential sample notes only, or
+                      load the example packet to try a second fictional case.
+                      This runs locally in the browser for this pilot: no
+                      upload, login, storage, or live AI call.
                     </p>
                   </div>
                   <span className="rounded border border-[#8aa398] bg-white px-3 py-2 text-sm font-medium text-[#24342e]">
@@ -237,22 +258,24 @@ export function ImpactReporterDemo() {
                   className="mt-4 block text-sm font-semibold text-[#405048]"
                   htmlFor="sample-packet"
                 >
-                  Sample evidence packet
+                  Optional sample evidence packet
                 </label>
                 <textarea
                   className="mt-2 min-h-48 w-full resize-y border border-[#c9d2c4] bg-white p-3 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
                   id="sample-packet"
                   onChange={(event) => setSampleText(event.target.value)}
+                  placeholder="Paste a short synthetic program packet here, or load the example packet."
                   value={sampleText}
                 />
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
-                    className="inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                    className="inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68] disabled:cursor-not-allowed disabled:bg-[#9aa9a1]"
+                    disabled={!sampleText.trim()}
                     onClick={analyzeSamplePacket}
                     type="button"
                   >
                     <Search aria-hidden className="h-4 w-4" />
-                    Analyze sample packet
+                    Analyze pasted packet
                   </button>
                   <button
                     className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-4 py-3 text-sm font-semibold hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"

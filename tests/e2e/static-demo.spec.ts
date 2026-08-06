@@ -8,10 +8,16 @@ test("static demo supports the four-step workflow and export", async ({
 
   await expect(page.getByRole("heading", { name: "Impact Reporter" })).toBeVisible();
   await expect(page.getByText("Safe pilot: synthetic data only")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Guide" })).toHaveAttribute(
-    "href",
-    "/guide",
-  );
+  await expect(
+    page.getByRole("link", { name: "Guide", exact: true }),
+  ).toHaveAttribute("href", "/guide");
+  await expect(
+    page.getByRole("button", { name: "Start preloaded walkthrough" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Optional sample evidence packet")).toHaveValue("");
+  await expect(
+    page.getByRole("button", { name: "Analyze pasted packet" }),
+  ).toBeDisabled();
 
   await page.getByRole("button", { name: /Step 2 Evidence ledger/ }).click();
   await expect(page.getByRole("heading", { name: "Evidence ledger" })).toBeVisible();
@@ -151,7 +157,7 @@ Participants completed robotics stations and reading reflection cards.
 The program will raise school science grades.
 Next cycle, add a pre/post design vocabulary check.`);
 
-  await page.getByRole("button", { name: "Analyze sample packet" }).click();
+  await page.getByRole("button", { name: "Analyze pasted packet" }).click();
 
   await expect(page.getByRole("heading", { name: "Evidence ledger" })).toBeVisible();
   await expect(page.getByText("Using pasted sample", { exact: true })).toBeVisible();
