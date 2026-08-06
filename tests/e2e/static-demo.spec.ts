@@ -7,7 +7,10 @@ test("static demo supports the four-step workflow and export", async ({
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Impact Reporter" })).toBeVisible();
-  await expect(page.getByText("Safe pilot: synthetic data only")).toBeVisible();
+  await expect(page.getByText("Demo uses sample data only")).toBeVisible();
+  await expect(
+    page.getByText("Turn program notes into a funder-ready draft"),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Guide", exact: true }),
   ).toHaveAttribute("href", "/guide");
@@ -27,16 +30,27 @@ test("static demo supports the four-step workflow and export", async ({
   await expect(page.getByRole("heading", { name: "Coverage and draft" })).toBeVisible();
   await expect(page.getByText("C6 / R3")).toBeVisible();
   await expect(page.getByText("blocked").first()).toBeVisible();
+  await page.getByRole("button", { name: /C3 \/ R3/ }).click();
+  await expect(page.getByRole("heading", { name: "E3: Matched reading check" })).toBeVisible();
+  await page.getByRole("button", { name: /C6 \/ R3/ }).click();
+  await expect(page.getByRole("heading", { name: "E8: Unsupported impact claim" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "E3: Matched reading check" }),
+  ).toHaveCount(0);
 
   await page.getByRole("button", { name: /Step 4 Review and export/ }).click();
   await expect(page.getByRole("heading", { name: "Review and export" })).toBeVisible();
   await expect(
-    page.getByText("1 blocked claim excluded from clean export"),
+    page.getByText("1 blocked claim excluded from export"),
   ).toBeVisible();
-  await expect(page.getByText("Clean export blocked")).toBeVisible();
+  await expect(page.getByText("Supported claims", { exact: true })).toBeVisible();
+  await expect(page.getByText("Caveated claims", { exact: true })).toBeVisible();
+  await expect(page.getByText("Blocked claim", { exact: true })).toBeVisible();
+  await expect(page.getByText("Export locked")).toBeVisible();
   await expect(
     page.getByText("Clean export requires recorded human review."),
   ).toBeVisible();
+  await expect(page.getByText(/Human review completed/)).toHaveCount(0);
 
   const exportButton = page.getByRole("button", {
     name: /Generate Markdown export/,
@@ -44,17 +58,32 @@ test("static demo supports the four-step workflow and export", async ({
   await expect(exportButton).toBeDisabled();
 
   await page
-    .getByLabel("Human review completed for this synthetic pilot export.")
+    .getByLabel("I reviewed this report's claims and confirm the sample export is ready.")
     .check();
   await expect(exportButton).toBeEnabled();
+  await expect(page.getByText("Ready to export")).toBeVisible();
 
   await exportButton.click();
   await expect(page.getByText("Winter Learning Lab Progress Update")).toBeVisible();
   await expect(page.locator("pre")).toContainText("Blocked claim excluded");
+  await expect(page.getByText("Markdown report preview")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy Markdown" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Download .md" })).toBeVisible();
 
   await expect(
     page.getByLabel("Generated Markdown export"),
   ).toContainText("Blocked claim excluded");
+  await expect(page.getByLabel("Generated Markdown export")).toContainText(
+    "not proof of causal impact",
+  );
+  await expect(page.getByLabel("Generated Markdown export")).not.toContainText(
+    "The program increased students' confidence and will improve grades.",
+  );
+  await page
+    .getByLabel("I reviewed this report's claims and confirm the sample export is ready.")
+    .uncheck();
+  await expect(page.getByText("Markdown report preview")).toHaveCount(0);
+  await expect(exportButton).toBeDisabled();
 
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -175,7 +204,7 @@ Next cycle, add a pre/post design vocabulary check.`);
     page.getByText("Clean export requires recorded human review."),
   ).toBeVisible();
   await page
-    .getByLabel("Human review completed for this synthetic pilot export.")
+    .getByLabel("I reviewed this report's claims and confirm the sample export is ready.")
     .check();
   await page.getByRole("button", { name: /Generate Markdown export/ }).click();
 

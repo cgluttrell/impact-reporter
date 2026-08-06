@@ -293,7 +293,7 @@ A participant said, "The reading games made practice feel less intimidating." Fa
 
 - R3 is supported with caveat: do not generalize to all enrolled students or claim causation.
 - R4 requires human review because the confidence observation is not a measured outcome.
-- Blocked claim excluded: "The program increased students' confidence and will improve grades."
+- Blocked claim excluded: unsupported confidence and future-grade language was left out of this report.
 
 ## Evidence Appendix
 
