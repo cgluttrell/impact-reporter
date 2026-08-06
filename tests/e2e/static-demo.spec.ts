@@ -102,20 +102,27 @@ test("homepage has no serious or critical axe violations", async ({ page }) => {
   expect(seriousOrCritical).toEqual([]);
 });
 
-test("guide page explains the pilot boundary and next MVP slice", async ({
+test("guide page explains the user workflow without roadmap language", async ({
   page,
 }) => {
   await page.goto("/guide");
 
   await expect(
     page.getByRole("heading", {
-      name: "Use Impact Reporter as a safe reporting pilot",
+      name: "Use Impact Reporter to check a progress report before it leaves the team",
     }),
   ).toBeVisible();
-  await expect(page.getByText("No real participant")).toBeVisible();
   await expect(
-    page.getByText("bring-your-own sample evidence workflow"),
+    page.getByText("You start with a safe sample reporting packet"),
   ).toBeVisible();
+  await expect(page.getByText("What the app produces")).toBeVisible();
+  await expect(
+    page.getByText("A blocked-claim check that keeps unsupported confidence"),
+  ).toBeVisible();
+  await expect(page.getByText("Use synthetic or non-confidential")).toBeVisible();
+  await expect(page.getByText("What comes next")).toHaveCount(0);
+  await expect(page.getByText(/next MVP/i)).toHaveCount(0);
+  await expect(page.getByText(/user accounts/i)).toHaveCount(0);
 
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
