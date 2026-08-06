@@ -1,6 +1,7 @@
 # Build for Good Submission Draft
 
-Status: draft for Chris review. Do not submit without explicit approval.
+Status: draft. Do not submit until reviewed and approved by the project
+maintainer.
 
 ## Short description
 
@@ -17,16 +18,16 @@ before export.
 - Evidence ledger confirmation before drafting.
 - Requirement coverage status.
 - Claim-level evidence inspection.
-- Deterministic checks for arithmetic, denominators, quotes, consent, and
-  unsupported outcome claims.
+- Deterministic checks for evidence IDs, blocked claims, caveats, and export
+  eligibility.
 - A blocked claim that tries to overstate student confidence and future grades.
 - Markdown export with warnings and an evidence appendix.
 
 ## Responsible AI framing
 
 The model may propose evidence and language. Deterministic code verifies
-references, arithmetic, quote exactness, consent, warnings, and export
-eligibility. A human remains responsible for approving the final report.
+references, blocked claims, warnings, and export eligibility. A human remains
+responsible for approving the final report.
 
 ## Current pilot boundary
 

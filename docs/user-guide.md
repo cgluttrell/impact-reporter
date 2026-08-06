@@ -162,8 +162,9 @@ The hosted demo is static/no-key:
 - hosted at `https://impact-reporter.luttrell.works/`
 
 Optional live AI routes exist in the codebase, but the hosted demo leaves
-`OPENAI_API_KEY` unset. Those routes return safe `no_key` responses until Chris
-explicitly approves enabling live model calls.
+`OPENAI_API_KEY` unset. Those routes return safe `no_key` responses until the
+project maintainer approves enabling live model calls after a data-boundary
+review.
 
 ## Suggested Demo Script
 

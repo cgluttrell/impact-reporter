@@ -1,45 +1,91 @@
 # Impact Reporter
 
-Impact Reporter is an evidence-linked reporting pilot for nonprofit and
-education teams.
-
-The narrow product promise:
+Impact Reporter helps nonprofit and education teams turn program notes into
+funder-ready report drafts while keeping every claim tied to evidence.
 
 > Draft what you can prove. Flag what you cannot.
 
-The current hosted version uses a fully synthetic program, Neighborhood Learning
-Lab, as the safe first mode for a four-step reporting workflow:
+Live demo: <https://impact-reporter.luttrell.works/>
 
-Hosted demo: `https://impact-reporter.luttrell.works/`
+## What It Does
 
-1. Define the report brief.
-2. Confirm the evidence ledger.
-3. Review coverage and draft evidence-linked claims.
-4. Approve, export, and keep unresolved warnings visible.
+The current demo uses a fictional Neighborhood Learning Lab packet to show a
+four-step reporting workflow:
 
-## Current Status
+1. Review the report brief: program, period, funder, and reporting questions.
+2. Inspect the evidence ledger before trusting any draft language.
+3. Check evidence-linked claims against the reporting requirements.
+4. Record human review and export a Markdown draft with warnings attached.
 
-This repository is in early Build for Good implementation. The deployed version
-is a safe static pilot, not the final product. The next MVP slice is controlled
-bring-your-own sample evidence input with verifier checks and export, before
-login, saved workspaces, or real nonprofit data handling.
+The key moment is the blocked claim. Impact Reporter refuses to turn weak
+evidence into confident-sounding impact language.
 
-## Data Boundary
+## Who It Helps
 
-Use synthetic data only.
+Impact Reporter is for small teams that need credible reporting but do not have
+a dedicated evaluation department:
 
-Do not enter real nonprofit, beneficiary, client, student, health, education,
-financial, grant, regulated, confidential, or personal data into this project.
-The demo is not a compliance product, audit tool, funder-submission system, or
-proof of real-world impact.
+- nonprofit executive directors preparing board or funder updates
+- grants and program managers writing progress reports
+- frontline program leads turning messy notes into safer report language
+- board reviewers checking whether public claims are defensible
+- funders or reviewers who want clearer evidence trails
+
+It is not a compliance product, audit tool, grant-management platform,
+evaluation system, or proof of real-world impact. It is a reporting review aid
+that helps teams see what their notes support, what needs caveats, and what
+should not be claimed yet.
 
 ## Demo Modes
 
-- Static demo mode: no OpenAI key required. Uses the Neighborhood Learning Lab
-  fixture and precomputed draft/verification states.
-- Optional live mode: planned later. Any model calls must run server-side, use
-  structured outputs, set `store: false`, and preserve deterministic verifier
-  authority.
+- Static demo mode needs no API key. It uses sample data, precomputed evidence,
+  deterministic checks, and a Markdown export.
+- Optional live AI routes exist server-side for extraction and drafting. They
+  stay disabled unless `IMPACT_REPORTER_LIVE_AI=enabled` and a server-side
+  `OPENAI_API_KEY` are configured.
+- When live AI is disabled or no key is present, the routes return explicit
+  static-mode JSON instead of calling a model.
+
+The browser never receives an OpenAI key. Model calls use the OpenAI Responses
+API with structured outputs and `store: false`.
+
+## Data Boundary
+
+Use synthetic or non-confidential sample text only.
+
+Do not enter real nonprofit, beneficiary, client, student, health, education,
+financial, grant, regulated, confidential, or personal data into the hosted
+demo.
+
+## OpenAI Integration
+
+The optional live mode is designed to use OpenAI where it adds product value:
+turning raw sample notes into candidate evidence and draft report language. The
+trust layer remains deterministic and human-reviewed:
+
+- AI proposes candidate evidence or draft language.
+- Code verifies evidence IDs, blocked claims, and export eligibility.
+- Human review is required before export.
+
+The public demo can run without a key, so judges and reviewers can evaluate the
+workflow safely. Live mode is intentionally guarded for the judging window and
+should be enabled only after route-level abuse controls are in place.
+
+## How Codex Helped
+
+Codex was used throughout implementation as the coding agent for the repo work:
+
+- scaffolded the Next.js/Cloudflare Worker app and documentation
+- implemented the static evidence-led reporting workflow
+- added verifier logic, sample workflow parsing, and live OpenAI route helpers
+- wrote and maintained Vitest and Playwright coverage, including accessibility
+  checks across desktop and mobile
+- opened small pull requests with local and GitHub CI evidence
+- incorporated review feedback from product/persona passes into focused code
+  changes
+
+Claude/Fable was used as an independent review and critique lane. Codex remained
+the implementation path for code, tests, QA, and pull requests.
 
 ## Local Setup
 
@@ -48,40 +94,46 @@ pnpm install
 pnpm dev
 ```
 
-Open `http://localhost:3000`.
+Open <http://localhost:3000>.
 
 ## Verification
 
 ```bash
+pnpm test
 pnpm lint
 pnpm typecheck
 pnpm build
+pnpm qa
 ```
 
-Additional verifier, fixture, accessibility, and Playwright tests will be added
-as the static vertical slice lands.
+`pnpm qa` runs unit tests, lint, typecheck, production build, and Playwright
+tests across the configured desktop and mobile projects.
+
+## Optional Live AI Configuration
+
+Create local environment variables only when testing live server-side routes:
+
+```bash
+IMPACT_REPORTER_LIVE_AI=enabled
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4.1-mini
+```
+
+Do not commit real keys. Hosted live mode should only be enabled with rate
+limits, origin controls, and an explicit review of the data boundary.
 
 ## Documentation
 
 - [User guide](docs/user-guide.md)
-- [MVP roadmap](docs/mvp-roadmap.md)
 - [Architecture](docs/architecture.md)
-- [Demo walkthrough](docs/demo-walkthrough.md)
 - [Verifier contract](docs/verifier-contract.md)
 - [Privacy and safety](docs/privacy-and-safety.md)
-- [Contributing](docs/contributing.md)
+- [Demo walkthrough](docs/demo-walkthrough.md)
 - [Deployment runbook](docs/deployment.md)
 - [QA checklist](docs/qa.md)
 - [Submission draft](docs/submission-draft.md)
+- [MVP roadmap](docs/mvp-roadmap.md)
 
-## Project Management
+## License
 
-Mission Control is the internal system of record. GitHub issues provide repo
-traceability once code work begins:
-
-- T1737 / Issue #1: governed repo bootstrap
-- T1738 / Issue #2: static demo vertical slice
-- T1739 / Issue #3: verifier and fixture test suite
-- T1740 / Issue #4: optional live OpenAI route
-- T1741 / Issue #5: public docs, QA, deployment, and submission package
-- T1747 / Issue #19: product reframing and next MVP direction
+MIT

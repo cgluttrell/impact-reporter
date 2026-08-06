@@ -3,8 +3,13 @@ import {
   callOpenAIResponses,
   draftPackageSchema,
   resolveLiveRouteConfig,
+  staticModeResponse,
   validateLiveRequestBody,
 } from "@/lib/live-openai";
+
+export async function GET() {
+  return staticModeResponse(process.env);
+}
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
