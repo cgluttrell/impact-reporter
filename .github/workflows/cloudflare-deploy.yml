@@ -57,7 +57,7 @@ jobs:
         run: pnpm exec opennextjs-cloudflare build
 
       - name: Dry-run Cloudflare deploy
-        run: pnpm exec wrangler deploy --dry-run --domain impact-reporter.luttrell.works
+        run: pnpm exec wrangler deploy --dry-run
 
   deploy:
     name: Deploy Cloudflare Worker
@@ -106,4 +106,4 @@ jobs:
 
       - name: Deploy to Cloudflare
         if: env.CLOUDFLARE_DEPLOY_ENABLED == 'true'
-        run: pnpm run deploy
+        run: pnpm run deploy:ci

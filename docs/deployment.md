@@ -43,9 +43,10 @@ Workers Assets. Do not use the deprecated `next-on-pages` package.
 3. Use the repo's checked-in `wrangler.jsonc`, `open-next.config.ts`, and the
    branded custom domain `impact-reporter.luttrell.works`.
 4. Deploy only after `pnpm qa` and `pnpm preview` pass.
-5. Use `pnpm run deploy` for an authenticated CLI deploy, or configure
-   Cloudflare's build/deploy flow to run the equivalent OpenNext Cloudflare
-   deploy command.
+5. Use `pnpm run deploy` for an authenticated CLI deploy that can bind or
+   refresh the branded custom domain. GitHub Actions uses `pnpm run deploy:ci`
+   for routine Worker publishes without editing the existing custom-domain
+   route.
 6. Run the browser QA checklist against the production URL.
 7. Capture desktop and mobile screenshots.
 8. Record the approved URL in Mission Control.
@@ -58,10 +59,11 @@ driven by GitHub after merges instead of a local Wrangler OAuth session.
 The workflow has two gates:
 
 - Pull requests and `main` pushes run `pnpm qa`, `opennextjs-cloudflare build`,
-  and `wrangler deploy --dry-run`.
+  and `wrangler deploy --dry-run` without a custom-domain flag.
 - Publishing runs only on `main` or manual dispatch, only when
-  `CLOUDFLARE_DEPLOY_ENABLED` is set to `true`, and targets
-  `https://impact-reporter.luttrell.works/`.
+  `CLOUDFLARE_DEPLOY_ENABLED` is set to `true`. The publish updates the
+  `impact-reporter` Worker and relies on the already-configured
+  `https://impact-reporter.luttrell.works/` custom-domain route.
 
 Required GitHub repository settings before automatic publish:
 
@@ -69,6 +71,10 @@ Required GitHub repository settings before automatic publish:
    - Use a Cloudflare API token scoped to the account and Worker.
    - Grant only the minimum Workers edit/deploy permissions needed for
      `impact-reporter`.
+   - The CI workflow does not need to edit custom-domain routes for routine
+     deploys. If the branded route must be created or changed later, do that as
+     an explicit approved admin action instead of broadening the CI token by
+     default.
    - Do not use the broad local Wrangler OAuth token for CI.
 2. Secret: `CLOUDFLARE_ACCOUNT_ID`
    - Use the Cloudflare account ID for the LIW account.
