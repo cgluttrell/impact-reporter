@@ -2,28 +2,37 @@ import Link from "next/link";
 
 const steps = [
   {
-    title: "Start with the reporting question",
-    body: "Confirm the reporting period, funder questions, and limits before trusting draft language.",
+    title: "Open the sample report brief",
+    body: "Start with the fictional program, reporting period, funder, and questions the report needs to answer.",
   },
   {
-    title: "Review the evidence ledger",
-    body: "Inspect evidence IDs, source excerpts, dates, denominators, consent notes, and confidence warnings.",
+    title: "Inspect the evidence ledger",
+    body: "Review each evidence item before trusting a claim: metrics, notes, quotes, source context, caveats, and blocked statements.",
   },
   {
-    title: "Check claims before export",
-    body: "Supported claims cite evidence. Weak or unsupported claims stay visible as warnings or blockers.",
+    title: "Check each draft claim",
+    body: "Select a claim to see what evidence supports it. The app labels strong claims, caveated claims, and claims that should not appear in a clean report.",
   },
   {
-    title: "Export with review notes intact",
-    body: "The Markdown export keeps warnings and evidence references visible so a human can finish the report responsibly.",
+    title: "Record review, then export",
+    body: "A clean Markdown export stays disabled until human review is recorded. The export keeps evidence references and unresolved warnings visible.",
   },
 ];
 
 const limits = [
-  "No real participant, student, beneficiary, client, patient, financial, grant, regulated, confidential, or private data.",
-  "No login, saved workspace, file upload, or production data handling yet.",
-  "No live AI calls in the hosted version until Chris explicitly approves a server-side key and data boundary.",
-  "Not a compliance product, audit tool, evaluation system, or funder-submission service.",
+  "Use synthetic or non-confidential sample text only.",
+  "Do not paste real participant, student, beneficiary, client, patient, financial, grant, regulated, confidential, or private data.",
+  "The hosted demo has no login, saved workspace, file upload, or production data handling.",
+  "The hosted demo makes no live AI calls unless that mode is explicitly enabled later.",
+  "This is not a compliance product, audit tool, evaluation system, or funder-submission service.",
+];
+
+const outcomes = [
+  "A report brief that names the program, period, funder, and reporting questions.",
+  "An evidence ledger that separates accepted evidence, caveated evidence, and unsupported statements.",
+  "Draft claims that show which evidence they cite.",
+  "A blocked-claim check that keeps unsupported confidence, causation, or future-results language out of the clean export.",
+  "A reviewed Markdown report draft with evidence references and warnings still attached.",
 ];
 
 export default function GuidePage() {
@@ -41,28 +50,35 @@ export default function GuidePage() {
             End-user guide
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-normal">
-            Use Impact Reporter as a safe reporting pilot
+            Use Impact Reporter to check a progress report before it leaves the team
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-[#405048]">
-            Impact Reporter helps nonprofit and education teams practice turning
-            program evidence into funder-ready progress-report language without
-            overstating what the evidence proves.
+            Impact Reporter helps nonprofit and education teams turn program
+            notes into evidence-linked report language. It shows what each claim
+            is based on, flags unsupported claims, and keeps human review in
+            control before export.
           </p>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl space-y-6 px-5 py-6">
         <section className="border border-[#c9d2c4] bg-white p-5">
-          <h2 className="text-xl font-semibold">Who it is for</h2>
+          <h2 className="text-xl font-semibold">What you do in the app</h2>
           <p className="mt-2 text-sm leading-6 text-[#405048]">
-            This pilot is for nonprofit program staff, grant writers, reviewers,
-            and community-impact builders who need a clearer way to connect
-            narrative claims to the evidence behind them.
+            You start with a safe sample reporting packet, inspect the evidence
+            the app found, review the draft claims, block language the evidence
+            does not support, record human review, and export a Markdown report
+            draft.
+          </p>
+          <p className="mt-3 text-sm leading-6 text-[#405048]">
+            The point is not to make a prettier paragraph. The point is to make
+            the relationship between evidence and claims visible before a report
+            goes to a funder, board, donor, or reviewer.
           </p>
         </section>
 
         <section className="border border-[#c9d2c4] bg-white p-5">
-          <h2 className="text-xl font-semibold">How to use it</h2>
+          <h2 className="text-xl font-semibold">Try the workflow</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {steps.map((step, index) => (
               <article className="border border-[#dfe4dc] p-4" key={step.title}>
@@ -79,6 +95,17 @@ export default function GuidePage() {
         </section>
 
         <section className="border border-[#c9d2c4] bg-white p-5">
+          <h2 className="text-xl font-semibold">What the app produces</h2>
+          <ul className="mt-4 space-y-3 text-sm leading-6 text-[#405048]">
+            {outcomes.map((outcome) => (
+              <li className="border-l-4 border-[#8aa398] pl-3" key={outcome}>
+                {outcome}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="border border-[#c9d2c4] bg-white p-5">
           <h2 className="text-xl font-semibold">Current safety boundary</h2>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-[#405048]">
             {limits.map((limit) => (
@@ -87,16 +114,6 @@ export default function GuidePage() {
               </li>
             ))}
           </ul>
-        </section>
-
-        <section className="border border-[#c9d2c4] bg-white p-5">
-          <h2 className="text-xl font-semibold">What comes next</h2>
-          <p className="mt-2 text-sm leading-6 text-[#405048]">
-            The next MVP step is not user accounts. It is a controlled
-            bring-your-own sample evidence workflow: paste or load a small
-            non-confidential packet, extract candidate evidence, run verifier
-            checks, inspect claims, and export a reviewed Markdown report.
-          </p>
         </section>
       </div>
     </main>
