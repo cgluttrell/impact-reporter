@@ -5,6 +5,7 @@ import {
   Ban,
   BookOpen,
   CheckCircle2,
+  Copy,
   ClipboardCheck,
   Download,
   FileText,
@@ -47,6 +48,16 @@ function requirementStatusLabel(status: string) {
   return status.replaceAll("_", " ");
 }
 
+function briefLabel(key: string) {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (character) => character.toUpperCase());
+}
+
+function pluralize(count: number, singular: string, plural = `${singular}s`) {
+  return count === 1 ? singular : plural;
+}
+
 function EvidenceIcon({ item }: { item: EvidenceItem }) {
   if (item.status === "flagged" || item.status === "rejected") {
     return <Ban aria-hidden className="h-4 w-4" />;
@@ -62,6 +73,7 @@ export function ImpactReporterDemo() {
   const [selectedEvidenceId, setSelectedEvidenceId] = useState("E3");
   const [selectedClaimId, setSelectedClaimId] = useState("C3");
   const [exportText, setExportText] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
   const [humanReviewApproved, setHumanReviewApproved] = useState(false);
   const [sampleText, setSampleText] = useState("");
   const [sampleDataset, setSampleDataset] = useState<ReportDataset | null>(null);
@@ -98,12 +110,34 @@ export function ImpactReporterDemo() {
         .filter(Boolean) as EvidenceItem[] | undefined,
     [activeEvidence, selectedClaim],
   );
+  const selectedClaimEvidenceIds = useMemo(
+    () => new Set(selectedClaim?.evidenceIds ?? []),
+    [selectedClaim],
+  );
+  const dispositionCounts = useMemo(
+    () => ({
+      verified: activeClaims.filter((claim) => claim.status === "verified").length,
+      warning: activeClaims.filter((claim) => claim.status === "warning").length,
+      blocked: activeClaims.filter((claim) => claim.status === "blocked").length,
+    }),
+    [activeClaims],
+  );
+  const blockedClaimSummary =
+    blockedClaims.length === 1
+      ? `"${blockedClaims[0].text}" is blocked and excluded from the report.`
+      : `${blockedClaims.length} blocked ${pluralize(blockedClaims.length, "claim")} are excluded from the report.`;
+
+  function selectClaim(claim: (typeof activeClaims)[number]) {
+    setSelectedClaimId(claim.id);
+    setSelectedEvidenceId(claim.evidenceIds[0] ?? selectedEvidenceId);
+  }
 
   function resetToPreloadedSample() {
     setActiveStep("Report brief");
     setSelectedEvidenceId("E3");
     setSelectedClaimId("C3");
     setExportText("");
+    setCopyStatus("");
     setHumanReviewApproved(false);
     setSampleText("");
     setSampleDataset(null);
@@ -117,8 +151,31 @@ export function ImpactReporterDemo() {
     setSelectedEvidenceId(dataset.evidence[0]?.id ?? "S1");
     setSelectedClaimId(dataset.claims[0]?.id ?? "SC1");
     setExportText("");
+    setCopyStatus("");
     setHumanReviewApproved(false);
     setActiveStep("Evidence ledger");
+  }
+
+  async function copyExport() {
+    if (!exportText) return;
+    try {
+      await navigator.clipboard.writeText(exportText);
+      setCopyStatus("Copied Markdown export.");
+    } catch {
+      setCopyStatus("Copy failed. Select the preview text to copy manually.");
+    }
+  }
+
+  function downloadExport() {
+    if (!exportText) return;
+
+    const blob = new Blob([exportText], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "impact-reporter-export.md";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -133,14 +190,15 @@ export function ImpactReporterDemo() {
               Impact Reporter
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[#405048]">
-              A safe first version of an evidence-linked reporting assistant for
-              nonprofit and education teams: draft what you can prove, flag what
-              you cannot, and keep human review in control.
+              Turn program notes into a funder-ready draft with every claim
+              checked against evidence. Supported claims stay in, shaky claims
+              get caveats, and unsupported claims are blocked before a funder
+              sees them.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded border border-[#8aa398] px-3 py-2 text-sm font-medium text-[#24342e]">
-              Safe pilot: synthetic data only
+              Demo uses sample data only
             </span>
             <a
               className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-3 py-2 text-sm font-medium hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
@@ -170,7 +228,7 @@ export function ImpactReporterDemo() {
                 <p className="mt-1 text-sm leading-6 text-[#405048]">
                   {activeMode === "sample"
                     ? "Using pasted sample packet. It stays in this browser session and is not uploaded or stored."
-                    : "Using the preloaded fictional pilot sample."}
+                    : "Using the preloaded sample report."}
                 </p>
               </div>
               <span className="rounded border border-[#8aa398] bg-[#eef7ef] px-3 py-2 text-sm font-medium text-[#24342e]">
@@ -209,11 +267,10 @@ export function ImpactReporterDemo() {
                 <div>
                   <h2 className="text-xl font-semibold">Report brief</h2>
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-[#405048]">
-                    Start with the preloaded fictional report, then follow the
-                    evidence trail through draft claims, blocked language, human
-                    review, and export. You can optionally paste your own safe
-                    sample packet below to see how the workflow reacts to
-                    different evidence.
+                    Start with the sample report, then follow the evidence trail
+                    through draft claims, blocked language, human review, and
+                    export. The walkthrough shows what your notes support, what
+                    needs caution, and what not to claim yet.
                   </p>
                 </div>
                 <span className="rounded border border-[#d6b86a] bg-[#fff8df] px-3 py-2 text-sm font-medium text-[#604514]">
@@ -242,12 +299,14 @@ export function ImpactReporterDemo() {
               <section className="mt-5 border border-[#d6b86a] bg-[#fffdf2] p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold">Try another safe sample packet</h3>
+                    <h3 className="font-semibold">
+                      Optional: try another non-confidential sample
+                    </h3>
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-[#604514]">
-                      Paste synthetic or non-confidential sample notes only, or
-                      load the example packet to try a second fictional case.
-                      This runs locally in the browser for this pilot: no
-                      upload, login, storage, or live AI call.
+                      Use short sample notes only: activities, attendance,
+                      quotes, observations, measures, caveats, and next steps.
+                      Do not paste names, private details, real participant
+                      records, or grant information.
                     </p>
                   </div>
                   <span className="rounded border border-[#8aa398] bg-white px-3 py-2 text-sm font-medium text-[#24342e]">
@@ -291,7 +350,7 @@ export function ImpactReporterDemo() {
                 {Object.entries(activeBrief).map(([key, value]) => (
                   <div className="border border-[#dfe4dc] p-3" key={key}>
                     <dt className="text-sm font-medium capitalize text-[#52615a]">
-                      {key.replace(/([A-Z])/g, " $1")}
+                      {briefLabel(key)}
                     </dt>
                     <dd className="mt-1 font-semibold">{value}</dd>
                   </div>
@@ -324,9 +383,9 @@ export function ImpactReporterDemo() {
             <section className="border border-[#c9d2c4] bg-white p-5">
               <h2 className="text-xl font-semibold">Evidence ledger</h2>
               <p className="mt-2 text-sm leading-6 text-[#405048]">
-                Candidate evidence is visible, typed, and inspectable. The
-                unsupported confidence claim is kept out of accepted measured
-                outcomes.
+                Here is what the app found in the notes and how it plans to use
+                each item. Unsupported statements stay visible, but they are not
+                treated as measured outcomes.
               </p>
               <div className="mt-5 grid gap-3">
                 {activeEvidence.map((item) => (
@@ -334,6 +393,8 @@ export function ImpactReporterDemo() {
                     className={`rounded border p-4 text-left focus:outline-none focus:ring-2 focus:ring-[#4f7d68] ${
                       selectedEvidenceId === item.id
                         ? "border-[#4f7d68] bg-[#eef7ef]"
+                        : selectedClaimEvidenceIds.has(item.id)
+                          ? "border-[#8aa398] bg-[#f4faf6]"
                         : "border-[#dfe4dc] hover:bg-[#f6f7f4]"
                     }`}
                     key={item.id}
@@ -399,7 +460,7 @@ export function ImpactReporterDemo() {
                         : "border-[#dfe4dc] hover:bg-[#f6f7f4]"
                     }`}
                     key={claim.id}
-                    onClick={() => setSelectedClaimId(claim.id)}
+                    onClick={() => selectClaim(claim)}
                     type="button"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -425,17 +486,31 @@ export function ImpactReporterDemo() {
             <section className="border border-[#c9d2c4] bg-white p-5">
               <h2 className="text-xl font-semibold">Review and export</h2>
               <p className="mt-2 text-sm leading-6 text-[#405048]">
-                Clean export remains blocked until unsupported measured-impact
-                claims are excluded and human review is recorded.
+                Before export, review which claims are supported, which need
+                caveats, and which are blocked. Blocked claims are excluded
+                instead of reworded to sound better.
               </p>
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <div className="border border-[#7aa085] bg-[#eef7ef] p-3 text-sm text-[#23472f]">
+                  <p className="text-lg font-semibold">{dispositionCounts.verified}</p>
+                  <p>Supported {pluralize(dispositionCounts.verified, "claim")}</p>
+                </div>
+                <div className="border border-[#d6b86a] bg-[#fff8df] p-3 text-sm text-[#604514]">
+                  <p className="text-lg font-semibold">{dispositionCounts.warning}</p>
+                  <p>Caveated {pluralize(dispositionCounts.warning, "claim")}</p>
+                </div>
+                <div className="border border-[#d28f82] bg-[#fff0ed] p-3 text-sm text-[#7a3528]">
+                  <p className="text-lg font-semibold">{dispositionCounts.blocked}</p>
+                  <p>Blocked {pluralize(dispositionCounts.blocked, "claim")}</p>
+                </div>
+              </div>
               <div className="mt-5 border border-[#d28f82] bg-[#fff0ed] p-4 text-[#7a3528]">
                 <div className="flex items-center gap-2 font-semibold">
                   <Ban aria-hidden className="h-4 w-4" />
-                  {blockedClaims.length} blocked claim excluded from clean export
+                  {blockedClaims.length} blocked {pluralize(blockedClaims.length, "claim")} excluded from export
                 </div>
                 <p className="mt-2 text-sm leading-6">
-                  The confidence and future-grade claim is visible as a blocker,
-                  not hidden in polished prose.
+                  {blockedClaimSummary}
                 </p>
               </div>
               <label className="mt-5 flex items-start gap-3 border border-[#d6b86a] bg-[#fff8df] p-4 text-sm leading-6 text-[#604514]">
@@ -445,16 +520,17 @@ export function ImpactReporterDemo() {
                   onChange={(event) => {
                     setHumanReviewApproved(event.target.checked);
                     setExportText("");
+                    setCopyStatus("");
                   }}
                   type="checkbox"
                 />
                 <span>
-                  Human review completed for this synthetic pilot export.
+                  I reviewed this report&apos;s claims and confirm the sample export is ready.
                 </span>
               </label>
               {exportBlockers.length > 0 && (
                 <div className="mt-3 border border-[#d28f82] bg-[#fff0ed] p-4 text-sm leading-6 text-[#7a3528]">
-                  <p className="font-semibold">Clean export blocked</p>
+                  <p className="font-semibold">Export locked</p>
                   <ul className="mt-2 list-disc space-y-1 pl-5">
                     {exportBlockers.map((finding) => (
                       <li key={`${finding.code}-${finding.entityId}`}>
@@ -464,15 +540,27 @@ export function ImpactReporterDemo() {
                   </ul>
                 </div>
               )}
+              {cleanExportReadiness.canExport && (
+                <div className="mt-3 border border-[#7aa085] bg-[#eef7ef] p-4 text-sm leading-6 text-[#23472f]">
+                  <p className="font-semibold">Ready to export</p>
+                  <p>
+                    Human review is recorded for this sample report, and blocked
+                    claims are excluded from the Markdown draft.
+                  </p>
+                </div>
+              )}
               <button
                 className="mt-5 inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68] disabled:cursor-not-allowed disabled:bg-[#9aa9a1]"
                 disabled={!cleanExportReadiness.canExport}
                 onClick={() =>
-                  setExportText(
-                    sampleDataset
-                      ? buildMarkdownExportFromDataset(sampleDataset)
-                      : buildMarkdownExport(),
-                  )
+                  {
+                    setExportText(
+                      sampleDataset
+                        ? buildMarkdownExportFromDataset(sampleDataset)
+                        : buildMarkdownExport(),
+                    );
+                    setCopyStatus("");
+                  }
                 }
                 type="button"
               >
@@ -480,13 +568,47 @@ export function ImpactReporterDemo() {
                 Generate Markdown export
               </button>
               {exportText && (
-                <pre
-                  aria-label="Generated Markdown export"
-                  className="mt-5 max-h-96 overflow-auto whitespace-pre-wrap border border-[#c9d2c4] bg-[#f6f7f4] p-4 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-[#234f39] focus:ring-offset-2"
-                  tabIndex={0}
-                >
-                  {exportText}
-                </pre>
+                <section className="mt-5 border border-[#c9d2c4] bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold">Markdown report preview</h3>
+                      <p className="mt-1 text-sm leading-6 text-[#405048]">
+                        The export keeps evidence references, unresolved
+                        warnings, and blocked-claim notes attached.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-3 py-2 text-sm font-semibold hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                        onClick={copyExport}
+                        type="button"
+                      >
+                        <Copy aria-hidden className="h-4 w-4" />
+                        Copy Markdown
+                      </button>
+                      <button
+                        className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-3 py-2 text-sm font-semibold hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
+                        onClick={downloadExport}
+                        type="button"
+                      >
+                        <Download aria-hidden className="h-4 w-4" />
+                        Download .md
+                      </button>
+                    </div>
+                  </div>
+                  {copyStatus && (
+                    <p className="mt-3 text-sm font-medium text-[#23472f]">
+                      {copyStatus}
+                    </p>
+                  )}
+                  <pre
+                    aria-label="Generated Markdown export"
+                    className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap border border-[#c9d2c4] bg-[#f6f7f4] p-4 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-[#234f39] focus:ring-offset-2"
+                    tabIndex={0}
+                  >
+                    {exportText}
+                  </pre>
+                </section>
               )}
             </section>
           )}
