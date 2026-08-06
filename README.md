@@ -69,7 +69,9 @@ trust layer remains deterministic and human-reviewed:
 
 The public demo can run without a key, so judges and reviewers can evaluate the
 workflow safely. Live mode is intentionally guarded for the judging window and
-should be enabled only after route-level abuse controls are in place.
+should be enabled only after route-level controls and Cloudflare-level abuse
+controls are in place. The checked-in route limiter is a best-effort per-isolate
+backstop, not the whole production abuse-control strategy.
 
 ## How Codex Helped
 
@@ -119,8 +121,8 @@ OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-Do not commit real keys. Hosted live mode should only be enabled with rate
-limits, origin controls, and an explicit review of the data boundary.
+Do not commit real keys. Hosted live mode should only be enabled with Cloudflare
+rate limits, origin controls, and an explicit review of the data boundary.
 
 ## Documentation
 

@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildResponsesRequest,
+  callOpenAIResponses,
   checkLiveRateLimit,
   clientKeyFromHeaders,
   DEFAULT_OPENAI_MODEL,
+  draftPackageSchema,
   evidenceExtractionSchema,
   LIVE_RATE_LIMIT_MAX_REQUESTS,
   LIVE_RATE_LIMIT_WINDOW_MS,
@@ -12,9 +14,18 @@ import {
   resolveLiveRouteConfig,
   staticModeResponse,
   validateLiveRequestBody,
+  withLiveRateLimitHeaders,
 } from "./live-openai";
 
 describe("live OpenAI route helpers", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    delete process.env.IMPACT_REPORTER_LIVE_AI;
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_MODEL;
+  });
+
   it("accepts bounded synthetic note input", () => {
     const result = validateLiveRequestBody({
       sourceArtifactId: "source-nll-note",
@@ -98,6 +109,28 @@ describe("live OpenAI route helpers", () => {
     });
   });
 
+  it("keeps the draft package schema strict-compatible", () => {
+    const assertStrictObject = (schema: Record<string, unknown>) => {
+      if (schema.type !== "object") return;
+
+      expect(schema).not.toHaveProperty("const");
+      expect(schema).toHaveProperty("additionalProperties", false);
+      const properties = schema.properties as Record<string, unknown>;
+      const required = schema.required as string[];
+      expect(required).toEqual(expect.arrayContaining(Object.keys(properties)));
+
+      for (const property of Object.values(properties)) {
+        const nested = property as Record<string, unknown>;
+        if (nested.type === "object") assertStrictObject(nested);
+        if (nested.type === "array" && nested.items) {
+          assertStrictObject(nested.items as Record<string, unknown>);
+        }
+      }
+    };
+
+    assertStrictObject(draftPackageSchema());
+  });
+
   it("returns friendly static-mode metadata for GET probes", async () => {
     const response = await staticModeResponse({});
     await expect(response.json()).resolves.toMatchObject({
@@ -159,6 +192,45 @@ describe("live OpenAI route helpers", () => {
     ).toMatchObject({
       ok: true,
       remaining: LIVE_RATE_LIMIT_MAX_REQUESTS - 1,
+    });
+  });
+
+  it("attaches rate-limit headers to successful live OpenAI responses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          id: "resp_test",
+          output: [],
+        }),
+      ),
+    );
+
+    const rateLimit = checkLiveRateLimit({
+      clientKey: `route-test-${crypto.randomUUID()}`,
+    });
+
+    const response = withLiveRateLimitHeaders(
+      await callOpenAIResponses({
+        apiKey: "test-key",
+        request: buildResponsesRequest({
+          model: "test-model",
+          schemaName: "EvidenceExtraction",
+          schema: evidenceExtractionSchema(),
+          system: "System instruction",
+          user: "Synthetic note text only.",
+        }),
+      }),
+      rateLimit,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("X-RateLimit-Limit")).toBe(
+      String(LIVE_RATE_LIMIT_MAX_REQUESTS),
+    );
+    await expect(response.json()).resolves.toMatchObject({
+      mode: "live",
+      status: "ok",
     });
   });
 
