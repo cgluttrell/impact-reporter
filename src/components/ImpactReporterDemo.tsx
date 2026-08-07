@@ -38,6 +38,18 @@ const steps = [
 
 type Step = (typeof steps)[number];
 
+type ExtractionRouteState =
+  | "idle"
+  | "checking"
+  | "static"
+  | "live"
+  | "fallback";
+
+type ExtractionRouteStatus = {
+  state: ExtractionRouteState;
+  message: string;
+};
+
 const statusStyles = {
   verified: "border-[#7aa085] bg-[#eef7ef] text-[#23472f]",
   warning: "border-[#d6b86a] bg-[#fff8df] text-[#604514]",
@@ -77,6 +89,11 @@ export function ImpactReporterDemo() {
   const [humanReviewApproved, setHumanReviewApproved] = useState(false);
   const [sampleText, setSampleText] = useState("");
   const [sampleDataset, setSampleDataset] = useState<ReportDataset | null>(null);
+  const [extractionRouteStatus, setExtractionRouteStatus] =
+    useState<ExtractionRouteStatus>({
+      state: "idle",
+      message: "Pasted sample analysis stays in this browser until checked.",
+    });
 
   const activeBrief = sampleDataset?.projectBrief ?? projectBrief;
   const activeRequirements = sampleDataset?.requirements ?? requirements;
@@ -141,12 +158,74 @@ export function ImpactReporterDemo() {
     setHumanReviewApproved(false);
     setSampleText("");
     setSampleDataset(null);
+    setExtractionRouteStatus({
+      state: "idle",
+      message: "Pasted sample analysis stays in this browser until checked.",
+    });
   }
 
-  function analyzeSamplePacket() {
-    if (!sampleText.trim()) return;
+  async function analyzeSamplePacket() {
+    const trimmedSampleText = sampleText.trim();
+    if (!trimmedSampleText) return;
 
-    const dataset = buildSampleWorkflow(sampleText);
+    setExtractionRouteStatus({
+      state: "checking",
+      message: "Checking extraction route before analyzing pasted sample.",
+    });
+
+    try {
+      const routeStatusResponse = await fetch("/api/extract", {
+        method: "GET",
+      });
+      const routeStatus = (await routeStatusResponse.json().catch(() => null)) as
+        | { mode?: string; status?: string; message?: string }
+        | null;
+
+      if (
+        routeStatusResponse.ok &&
+        routeStatus?.mode === "live" &&
+        routeStatus.status === "ready"
+      ) {
+        const extractionResponse = await fetch("/api/extract", {
+          body: JSON.stringify({
+            sourceArtifactId: "pasted-sample-packet",
+            note: trimmedSampleText,
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+
+        if (!extractionResponse.ok) {
+          setExtractionRouteStatus({
+            state: "fallback",
+            message:
+              "Extraction route did not return a usable response; using browser sample analysis.",
+          });
+        } else {
+          setExtractionRouteStatus({
+            state: "live",
+            message:
+              "Extraction route is live; browser sample analysis keeps this review visible.",
+          });
+        }
+      } else {
+        setExtractionRouteStatus({
+          state: "static",
+          message:
+            routeStatus?.status === "missing_key"
+              ? "Extraction route is missing its server key; using browser sample analysis."
+              : "Extraction route is in static pilot mode; using browser sample analysis.",
+        });
+      }
+    } catch {
+      setExtractionRouteStatus({
+        state: "fallback",
+        message:
+          "Extraction route could not be reached; using browser sample analysis.",
+      });
+    }
+
+    const dataset = buildSampleWorkflow(trimmedSampleText);
     setSampleDataset(dataset);
     setSelectedEvidenceId(dataset.evidence[0]?.id ?? "S1");
     setSelectedClaimId(dataset.claims[0]?.id ?? "SC1");
@@ -229,6 +308,12 @@ export function ImpactReporterDemo() {
                   {activeMode === "sample"
                     ? "Using pasted sample packet. It stays in this browser session and is not uploaded or stored."
                     : "Using the preloaded sample report."}
+                </p>
+                <p
+                  aria-live="polite"
+                  className="mt-2 text-sm font-medium text-[#405048]"
+                >
+                  Extraction route: {extractionRouteStatus.message}
                 </p>
               </div>
               <span className="rounded border border-[#8aa398] bg-[#eef7ef] px-3 py-2 text-sm font-medium text-[#24342e]">
@@ -329,12 +414,14 @@ export function ImpactReporterDemo() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     className="inline-flex items-center gap-2 rounded bg-[#1f4d3a] px-4 py-3 text-sm font-semibold text-white hover:bg-[#193f30] focus:outline-none focus:ring-2 focus:ring-[#4f7d68] disabled:cursor-not-allowed disabled:bg-[#9aa9a1]"
-                    disabled={!sampleText.trim()}
+                    disabled={!sampleText.trim() || extractionRouteStatus.state === "checking"}
                     onClick={analyzeSamplePacket}
                     type="button"
                   >
                     <Search aria-hidden className="h-4 w-4" />
-                    Analyze pasted packet
+                    {extractionRouteStatus.state === "checking"
+                      ? "Checking route"
+                      : "Analyze pasted packet"}
                   </button>
                   <button
                     className="inline-flex items-center gap-2 rounded border border-[#9aa9a1] bg-white px-4 py-3 text-sm font-semibold hover:bg-[#f6f7f4] focus:outline-none focus:ring-2 focus:ring-[#4f7d68]"
