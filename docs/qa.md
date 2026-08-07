@@ -24,7 +24,17 @@ Manual visual QA:
 - Confirm the four-step navigation works.
 - Confirm E8 remains blocked.
 - Confirm Markdown export includes warnings and evidence appendix.
-- Confirm `/api/extract` and `/api/draft` return `no_key` without server env.
+- Confirm `/api/extract` and `/api/draft` return explicit static-mode statuses
+  such as `live_disabled` without server env.
+
+Local demo-prep QA:
+
+- Confirm `.env.local` is ignored before using any API key.
+- Confirm `docs/local-live-demo.md` does not include a real key.
+- Confirm `docs/demo-live-synthetic-packet.md` is synthetic-only.
+- Confirm the recording checklist states that public hosted live AI remains off.
+- Confirm the pasted-packet flow visibly reports live/static/fallback route
+  status before continuing.
 
 Public release blockers:
 
