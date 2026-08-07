@@ -13,3 +13,17 @@ The first demo uses the fictional Neighborhood Learning Lab packet.
 
 The trust moment is the refusal to present unsupported confidence or future
 grade improvement as measured impact.
+
+## Local Live-AI Recording Prep
+
+For a local video recording with optional live AI, use:
+
+- [`local-live-demo.md`](local-live-demo.md) for setup, route readiness checks,
+  cost guard, and stop conditions.
+- [`demo-live-synthetic-packet.md`](demo-live-synthetic-packet.md) for safe
+  pasted-packet rehearsal text.
+- [`demo-recording-checklist.md`](demo-recording-checklist.md) for the click
+  path and talk track.
+
+The public hosted pilot remains static unless hosted live AI receives separate
+project maintainer approval.

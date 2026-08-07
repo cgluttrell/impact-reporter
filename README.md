@@ -117,12 +117,17 @@ Create local environment variables only when testing live server-side routes:
 
 ```bash
 IMPACT_REPORTER_LIVE_AI=enabled
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=replace-with-local-openai-api-key
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
 Do not commit real keys. Hosted live mode should only be enabled with Cloudflare
 rate limits, origin controls, and an explicit review of the data boundary.
+
+For local video-demo preparation, use
+[`docs/local-live-demo.md`](docs/local-live-demo.md),
+[`docs/demo-live-synthetic-packet.md`](docs/demo-live-synthetic-packet.md), and
+[`docs/demo-recording-checklist.md`](docs/demo-recording-checklist.md).
 
 ## Documentation
 
