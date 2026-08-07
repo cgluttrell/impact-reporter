@@ -171,6 +171,28 @@ test("guide page explains the user workflow without roadmap language", async ({
 });
 
 test("user can analyze a safe sample evidence packet", async ({ page }) => {
+  let extractGetCount = 0;
+  let extractPostCount = 0;
+
+  await page.route("**/api/extract", async (route) => {
+    if (route.request().method() === "GET") {
+      extractGetCount += 1;
+      await route.fulfill({
+        contentType: "application/json",
+        json: {
+          mode: "static",
+          status: "live_disabled",
+          message: "Static pilot mode is active.",
+        },
+        status: 200,
+      });
+      return;
+    }
+
+    extractPostCount += 1;
+    await route.continue();
+  });
+
   await page.goto("/");
 
   await page.getByLabel("Sample evidence packet").fill(`Program: Library STEM Night
@@ -189,7 +211,14 @@ Next cycle, add a pre/post design vocabulary check.`);
   await page.getByRole("button", { name: "Analyze pasted packet" }).click();
 
   await expect(page.getByRole("heading", { name: "Evidence ledger" })).toBeVisible();
+  expect(extractGetCount).toBe(1);
+  expect(extractPostCount).toBe(0);
   await expect(page.getByText("Using pasted sample", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      "Extraction route: Extraction route is in static pilot mode; using browser sample analysis.",
+    ),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /S1: Participation or delivery note/ }),
   ).toBeVisible();
