@@ -1,4 +1,8 @@
 import {
+  cachedDraftPackageResponse,
+  isCachedSampleRequest,
+} from "@/lib/cached-live-ai";
+import {
   buildResponsesRequest,
   callOpenAIResponses,
   checkLiveRateLimit,
@@ -33,6 +37,19 @@ export async function POST(request: Request) {
       mode: "static",
       status: liveConfig.status,
       message: liveConfig.message,
+    });
+  }
+
+  if (isCachedSampleRequest(validation) && !validation.requestLive) {
+    return cachedDraftPackageResponse();
+  }
+
+  if (!validation.requestLive) {
+    return Response.json({
+      mode: "live",
+      status: "cache_miss",
+      message:
+        "Live AI is configured, but this route serves cached output unless an explicit live request is made.",
     });
   }
 

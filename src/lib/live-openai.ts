@@ -9,7 +9,12 @@ const liveRequestCounts = new Map<string, { count: number; resetAt: number }>();
 const LIVE_RATE_LIMIT_PRUNE_THRESHOLD = 1000;
 
 export type LiveRouteValidation =
-  | { ok: true; sourceArtifactId: string; note: string }
+  | {
+      ok: true;
+      sourceArtifactId: string;
+      note: string;
+      requestLive: boolean;
+    }
   | { ok: false; status: number; error: string };
 
 export type OpenAIRequestBody = {
@@ -145,6 +150,7 @@ export function validateLiveRequestBody(body: unknown): LiveRouteValidation {
 
   const sourceArtifactId = (body as Record<string, unknown>).sourceArtifactId;
   const note = (body as Record<string, unknown>).note;
+  const requestLive = (body as Record<string, unknown>).requestLive;
 
   if (typeof sourceArtifactId !== "string" || sourceArtifactId.length === 0) {
     return {
@@ -174,7 +180,12 @@ export function validateLiveRequestBody(body: unknown): LiveRouteValidation {
     };
   }
 
-  return { ok: true, sourceArtifactId, note };
+  return {
+    ok: true,
+    sourceArtifactId,
+    note,
+    requestLive: requestLive === true,
+  };
 }
 
 export function evidenceExtractionSchema() {

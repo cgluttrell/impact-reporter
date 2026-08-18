@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  CACHED_SAMPLE_SOURCE_ARTIFACT_ID,
+  isCachedSampleRequest,
+} from "./cached-live-ai";
+import {
   buildResponsesRequest,
   callOpenAIResponses,
   checkLiveRateLimit,
@@ -16,6 +20,7 @@ import {
   validateLiveRequestBody,
   withLiveRateLimitHeaders,
 } from "./live-openai";
+import { samplePacketText } from "./sample-workflow";
 
 describe("live OpenAI route helpers", () => {
   afterEach(() => {
@@ -36,7 +41,24 @@ describe("live OpenAI route helpers", () => {
       ok: true,
       sourceArtifactId: "source-nll-note",
       note: "Synthetic note text",
+      requestLive: false,
     });
+  });
+
+  it("detects the cached fixed sample request exactly", () => {
+    expect(
+      isCachedSampleRequest({
+        sourceArtifactId: CACHED_SAMPLE_SOURCE_ARTIFACT_ID,
+        note: samplePacketText,
+      }),
+    ).toBe(true);
+
+    expect(
+      isCachedSampleRequest({
+        sourceArtifactId: CACHED_SAMPLE_SOURCE_ARTIFACT_ID,
+        note: `${samplePacketText}\nExtra free-form text`,
+      }),
+    ).toBe(false);
   });
 
   it("rejects missing sourceArtifactId", () => {
