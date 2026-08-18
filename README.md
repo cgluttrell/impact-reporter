@@ -36,6 +36,25 @@ evaluation system, or proof of real-world impact. It is a reporting review aid
 that helps teams see what their notes support, what needs caveats, and what
 should not be claimed yet.
 
+## How It Will Be Used
+
+A program lead, grants manager, or executive director would use Impact Reporter
+when a progress update is due and their source material is still scattered
+across notes, attendance counts, survey summaries, and anecdotal observations.
+They start with a safe sample packet, inspect the evidence ledger, review which
+requirements are supported, and check each draft claim before anything leaves
+the team.
+
+The expected handoff is a Markdown report draft with evidence references,
+warnings, and blocked-claim notes still attached. That gives the writer a
+clearer first draft, gives a reviewer a trail back to the source material, and
+keeps unsupported impact language out of board, funder, or stakeholder updates.
+
+In the hosted pilot, this workflow is demonstrated with synthetic data only. In
+real use, the same pattern is meant for non-confidential sample evidence first,
+then later for governed organization data only after storage, access control,
+and review policies are designed.
+
 ## Demo Modes
 
 - Static demo mode needs no API key. It uses sample data, precomputed evidence,
