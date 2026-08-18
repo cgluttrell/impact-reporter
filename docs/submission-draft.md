@@ -1,7 +1,6 @@
-# Build for Good Submission Draft
+# Build for Good Submission
 
-Status: draft. Do not submit until reviewed and approved by the project
-maintainer.
+Status: approved by Chris Luttrell 2026-08-18. Cleared to post.
 
 Source checked: Build for Good thread requirements on 2026-08-18. Submission is
 a thread reply, not a Devpost form.
@@ -100,5 +99,5 @@ without creating an account or storing real data.
 - README setup/sample-data/run guidance: satisfied.
 - README "who it helps" and "how it will be used" requirements: satisfied.
 - README Codex usage explanation: satisfied.
-- Final approval/submission: human-only; do not change this draft's status until
-  Chris approves it.
+- Final approval: given by Chris 2026-08-18.
+- Posting the thread reply remains human-only.
